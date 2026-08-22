@@ -1,0 +1,13 @@
+Flask
+Flask-Cors
+psycopg[binary]
+python-dotenv
+requests
+google-genai
+groq
+openai
+Flask
+Flask-Cors
+psycopg[binary]
+python-dotenv
+gunicorn
