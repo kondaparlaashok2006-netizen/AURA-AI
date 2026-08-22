@@ -838,6 +838,144 @@ class AuraVoiceController {
         }
     }
 
+    // =====================================================
+    // OPEN WEB ACTION IN USER'S BROWSER
+    // =====================================================
+
+    getWebActionUrl(command) {
+
+        const text = command.toLowerCase().trim();
+
+        // -----------------------------
+        // YOUTUBE
+        // -----------------------------
+
+        if (
+            text === "youtube" ||
+            text === "open youtube" ||
+            text === "launch youtube" ||
+            text === "start youtube"
+        ) {
+            return "https://www.youtube.com";
+        }
+
+        // YouTube search
+        let match = text.match(
+            /^search\s+(?:on\s+)?youtube\s+(?:for\s+)?(.+)$/
+        );
+
+        if (match) {
+
+            const query = match[1].trim();
+
+            if (query) {
+                return (
+                    "https://www.youtube.com/results?search_query=" +
+                    encodeURIComponent(query)
+                );
+            }
+        }
+
+        // -----------------------------
+        // GOOGLE
+        // -----------------------------
+
+        if (
+            text === "google" ||
+            text === "open google" ||
+            text === "launch google" ||
+            text === "start google"
+        ) {
+            return "https://www.google.com";
+        }
+
+        // Google search
+        match = text.match(
+            /^search\s+(?:google\s+)?(?:for\s+)?(.+)$/
+        );
+
+        if (
+            match &&
+            !text.startsWith("search youtube")
+        ) {
+
+            const query = match[1].trim();
+
+            if (query) {
+                return (
+                    "https://www.google.com/search?q=" +
+                    encodeURIComponent(query)
+                );
+            }
+        }
+
+        // -----------------------------
+        // INSTAGRAM
+        // -----------------------------
+
+        if (
+            text === "instagram" ||
+            text === "open instagram" ||
+            text === "launch instagram" ||
+            text === "start instagram"
+        ) {
+            return "https://www.instagram.com";
+        }
+
+        // -----------------------------
+        // FACEBOOK
+        // -----------------------------
+
+        if (
+            text === "facebook" ||
+            text === "open facebook" ||
+            text === "launch facebook" ||
+            text === "start facebook"
+        ) {
+            return "https://www.facebook.com";
+        }
+
+        // -----------------------------
+        // SNAPCHAT
+        // -----------------------------
+
+        if (
+            text === "snapchat" ||
+            text === "open snapchat" ||
+            text === "launch snapchat" ||
+            text === "start snapchat"
+        ) {
+            return "https://www.snapchat.com";
+        }
+
+        // -----------------------------
+        // SPOTIFY
+        // -----------------------------
+
+        if (
+            text === "spotify" ||
+            text === "open spotify" ||
+            text === "launch spotify" ||
+            text === "start spotify"
+        ) {
+            return "https://open.spotify.com";
+        }
+
+        // -----------------------------
+        // WHATSAPP WEB
+        // -----------------------------
+
+        if (
+            text === "whatsapp web" ||
+            text === "open whatsapp web" ||
+            text === "launch whatsapp web"
+        ) {
+            return "https://web.whatsapp.com";
+        }
+
+        return null;
+    }
+
     // =========================================================
     // SEND COMMAND
     // =========================================================
@@ -846,9 +984,30 @@ class AuraVoiceController {
         command
     ) {
 
+        command = command.trim();
+
+        if (!command) {
+            return;
+        }
+
+        const webActionUrl = this.getWebActionUrl(command);
+
+        if (webActionUrl) {
+
+            window.open(
+                webActionUrl,
+                "_blank"
+            );
+        }
+
         const AURA_API =
             window.AURA_API_URL ||
             "https://aura-ai-ywzs.onrender.com";
+
+        addMessage(
+            "YOU",
+            command
+        );
 
         console.log(
             "AURA → SERVER:",
