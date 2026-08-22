@@ -1,7 +1,22 @@
+# Environment / secrets
 .env
+
+# Python
 venv/
 __pycache__/
 *.pyc
+*.pyo
+
+# Local user data
 user_profile.json
 
+# Voice profile
 voice_profile/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
