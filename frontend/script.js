@@ -848,7 +848,7 @@ class AuraVoiceController {
 
         const AURA_API =
             window.AURA_API_URL ||
-            "http://127.0.0.1:5050";
+            "https://aura-ai-ywzs.onrender.com";
 
         console.log(
             "AURA → SERVER:",
