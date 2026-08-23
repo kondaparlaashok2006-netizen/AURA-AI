@@ -1466,7 +1466,7 @@ if (
 
     const AURA_API =
         window.AURA_API_URL ||
-        "https://aura-ai-ywzs.onrender.com";
+        "https://aura-ai-backend-cl7h.onrender.com";
 
     try {
         const response =
