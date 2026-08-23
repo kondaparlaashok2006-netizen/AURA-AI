@@ -1,21 +1,13 @@
+﻿import json
 import os
 import re
 import threading
 
 import pyttsx3
 
-from backend.ai_brain import AIBrain
-from backend.actions.action_router import ActionRouter
-from backend.database import (
-    get_user,
-    create_user,
-    update_user_name,
-    update_last_seen,
-    save_conversation,
-    save_search,
-    get_conversation_history
-)
-from backend.reminders import ReminderManager
+from ai_brain import AIBrain
+from actions.action_router import ActionRouter
+from reminders import ReminderManager
 
 
 class AuraAssistant:
@@ -61,11 +53,13 @@ class AuraAssistant:
         # USER PROFILE
         # ==================================================
 
-        self.username = None
-        self.user_name = None
+        self.profile_file = "user_profile.json"
 
-        self.waiting_for_name = True
-        self.waiting_for_username = False
+        self.user_name = self.load_user_name()
+
+        self.waiting_for_name = (
+            self.user_name is None
+        )
 
         # ==================================================
         # APP STATE
@@ -105,6 +99,87 @@ class AuraAssistant:
     # USER PROFILE
     # =========================================================
 
+    def load_user_name(self):
+
+        try:
+
+            if not os.path.exists(
+                self.profile_file
+            ):
+                return None
+
+            with open(
+                self.profile_file,
+                "r",
+                encoding="utf-8"
+            ) as file:
+
+                data = json.load(file)
+
+            name = str(
+                data.get("name", "")
+            ).strip()
+
+            if name:
+                return name
+
+        except Exception as error:
+
+            print(
+                "PROFILE LOAD ERROR:",
+                error
+            )
+
+        return None
+
+    # =========================================================
+    # SAVE USER NAME
+    # =========================================================
+
+    def save_user_name(self, name):
+
+        try:
+
+            name = str(
+                name
+            ).strip()
+
+            if not name:
+                return False
+
+            with open(
+                self.profile_file,
+                "w",
+                encoding="utf-8"
+            ) as file:
+
+                json.dump(
+                    {
+                        "name": name
+                    },
+                    file,
+                    indent=4
+                )
+
+            self.user_name = name
+
+            self.waiting_for_name = False
+
+            print(
+                f"AURA: User name saved -> {name}"
+            )
+
+            return True
+
+        except Exception as error:
+
+            print(
+                "PROFILE SAVE ERROR:",
+                error
+            )
+
+            return False
+
     # =========================================================
     # GET USER NAME
     # =========================================================
@@ -113,95 +188,15 @@ class AuraAssistant:
 
         return self.user_name
 
+    # =========================================================
+    # SET USER NAME
+    # =========================================================
+
     def set_user_name(self, name):
-        name = str(name).strip()
 
-        if not name:
-            return False
-
-        self.user_name = name
-        self.waiting_for_name = False
-        self.waiting_for_username = True
-
-        return True
-
-    def set_current_user(self, username):
-        username = username.strip().lower()
-
-        if not username:
-            return False
-
-        user = get_user(username)
-
-        if not user:
-            return False
-
-        self.username = user[1]
-        self.user_name = user[2]
-
-        update_last_seen(self.username)
-
-        # Restore this user's previous conversation
-        self.conversation_history = get_conversation_history(
-            self.username,
-            self.max_memory
+        return self.save_user_name(
+            name
         )
-
-        self.waiting_for_name = False
-        self.waiting_for_username = False
-
-        print(
-            f"AURA USER LOADED: {self.username} "
-            f"({self.user_name})"
-        )
-
-        return True
-
-    def register_user(self, username, display_name):
-        username = username.strip().lower()
-        display_name = display_name.strip()
-
-        if not username or not display_name:
-            return False
-
-        existing = get_user(username)
-
-        if existing:
-            return False
-
-        user = create_user(
-            username,
-            display_name
-        )
-
-        if not user:
-            return False
-
-        self.username = user[1]
-        self.user_name = user[2]
-
-        return True
-
-    def change_current_user_name(self, new_name):
-        if not self.username:
-            return False
-
-        new_name = new_name.strip()
-
-        if not new_name:
-            return False
-
-        user = update_user_name(
-            self.username,
-            new_name
-        )
-
-        if not user:
-            return False
-
-        self.user_name = user[2]
-
-        return True
 
     # =========================================================
     # SPEECH ENGINE
@@ -383,12 +378,12 @@ class AuraAssistant:
         )
 
         text = text.replace(
-            "•",
+            "â€¢",
             ""
         )
 
         text = text.replace(
-            "→",
+            "â†’",
             ""
         )
 
@@ -404,7 +399,11 @@ class AuraAssistant:
     # MEMORY
     # =========================================================
 
-    def remember(self, user_message, response):
+    def remember(
+        self,
+        user_message,
+        response
+    ):
 
         self.conversation_history.append(
             {
@@ -413,22 +412,17 @@ class AuraAssistant:
             }
         )
 
-        if len(self.conversation_history) > self.max_memory:
-            self.conversation_history.pop(0)
+        if (
+            len(
+                self.conversation_history
+            )
+            >
+            self.max_memory
+        ):
 
-        # Save permanently for the current user
-        if self.username:
-            try:
-                save_conversation(
-                    self.username,
-                    user_message,
-                    response
-                )
-            except Exception as error:
-                print(
-                    "DATABASE CONVERSATION SAVE ERROR:",
-                    error
-                )
+            self.conversation_history.pop(
+                0
+            )
 
     # =========================================================
     # MEMORY CONTEXT
@@ -493,9 +487,13 @@ class AuraAssistant:
     # FIRST-TIME NAME
     # =========================================================
 
-    def handle_first_name(self, command):
+    def handle_first_name(
+        self,
+        command
+    ):
 
         if not self.waiting_for_name:
+
             return None
 
         text = (
@@ -505,7 +503,14 @@ class AuraAssistant:
         )
 
         if not text:
-            return "What should I call you?"
+
+            return (
+                "What should I call you?"
+            )
+
+        # -----------------------------------------------------
+        # Explicit formats
+        # -----------------------------------------------------
 
         patterns = [
             r"^my name is\s+(.+)$",
@@ -517,6 +522,7 @@ class AuraAssistant:
         name = None
 
         for pattern in patterns:
+
             match = re.match(
                 pattern,
                 text,
@@ -524,18 +530,35 @@ class AuraAssistant:
             )
 
             if match:
+
                 name = (
                     match.group(1)
                     .strip()
                     .strip(".!?")
                 )
+
                 break
 
+        # -----------------------------------------------------
+        # Bare answer
+        #
+        # AURA asked:
+        # "What should I call you?"
+        #
+        # User:
+        # "Ashok"
+        # -----------------------------------------------------
+
         if name is None:
+
+            # Accept a simple name.
+
             if (
                 len(text) <= 40
-                and len(text.split()) <= 5
-                and not any(
+                and
+                len(text.split()) <= 5
+                and
+                not any(
                     word in text.lower()
                     for word in [
                         "open",
@@ -553,74 +576,34 @@ class AuraAssistant:
                     ]
                 )
             ):
+
                 name = text
 
         if not name:
-            return "Please tell me your name."
 
-        self.user_name = name
-        self.waiting_for_name = False
-        self.waiting_for_username = True
+            return (
+                "Please tell me your name."
+            )
+
+        # -----------------------------------------------------
+        # SAVE PERMANENTLY
+        # -----------------------------------------------------
+
+        saved = (
+            self.save_user_name(
+                name
+            )
+        )
+
+        if not saved:
+
+            return (
+                "I couldn't save your name."
+            )
 
         return (
-            f"Hello {name}. "
-            f"What username would you like for AURA?"
-        )
-
-    def handle_first_username(self, command):
-
-        if not self.waiting_for_username:
-            return None
-
-        username = (
-            command
-            .strip()
-            .lower()
-            .strip(".!?")
-        )
-
-        if not username:
-            return "Please tell me your username."
-
-        # Basic username validation
-        if not re.match(
-            r"^[a-z0-9_@.-]{3,50}$",
-            username
-        ):
-            return (
-                "Please choose a username using "
-                "letters, numbers, dots, underscores, "
-                "or hyphens."
-            )
-
-        existing = get_user(username)
-
-        if existing:
-            return (
-                "That username is already in use. "
-                "Please choose another one."
-            )
-
-        created = create_user(
-            username,
-            self.user_name
-        )
-
-        if not created:
-            return (
-                "I couldn't create your AURA user."
-            )
-
-        self.username = created[1]
-        self.user_name = created[2]
-        self.waiting_for_username = False
-
-        update_last_seen(self.username)
-
-        return (
-            f"Perfect, {self.user_name}. "
-            f"Your AURA username is {self.username}. "
-            f"How can I help you today?"
+            f"Hello {name}, "
+            f"how can I help you today?"
         )
 
     # =========================================================
@@ -993,21 +976,6 @@ class AuraAssistant:
 
                 return response
 
-        if self.waiting_for_username:
-
-            response = self.handle_first_username(
-                command
-            )
-
-            if response:
-
-                self.remember(
-                    command,
-                    response
-                )
-
-                return response
-
         # =====================================================
         # WHATSAPP MESSAGE
         # =====================================================
@@ -1030,21 +998,6 @@ class AuraAssistant:
         # =====================================================
         # PENDING APP
         # =====================================================
-
-        if self.pending_app:
-
-            clarification_words = [
-                "desktop",
-                "desktop app",
-                "app",
-                "application",
-                "website",
-                "web",
-                "browser"
-            ]
-
-            if normalized not in clarification_words:
-                self.pending_app = None
 
         response = (
             self.handle_pending_app(
@@ -1286,13 +1239,6 @@ class AuraAssistant:
                             query
                         )
                     )
-
-                    if self.username:
-                        save_search(
-                            self.username,
-                            "google",
-                            query
-                        )
 
                     if response:
 
