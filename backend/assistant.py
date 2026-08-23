@@ -1,4 +1,4 @@
-import json
+﻿import json
 import os
 import re
 import threading
@@ -378,12 +378,12 @@ class AuraAssistant:
         )
 
         text = text.replace(
-            "•",
+            "â€¢",
             ""
         )
 
         text = text.replace(
-            "→",
+            "â†’",
             ""
         )
 

@@ -4,9 +4,9 @@ import threading
 
 import pyttsx3
 
-from ai_brain import AIBrain
-from actions.action_router import ActionRouter
-from database import (
+from backend.ai_brain import AIBrain
+from backend.actions.action_router import ActionRouter
+from backend.database import (
     get_user,
     create_user,
     update_user_name,
@@ -15,7 +15,7 @@ from database import (
     save_search,
     get_conversation_history
 )
-from reminders import ReminderManager
+from backend.reminders import ReminderManager
 
 
 class AuraAssistant:
@@ -112,6 +112,18 @@ class AuraAssistant:
     def get_user_name(self):
 
         return self.user_name
+
+    def set_user_name(self, name):
+        name = str(name).strip()
+
+        if not name:
+            return False
+
+        self.user_name = name
+        self.waiting_for_name = False
+        self.waiting_for_username = True
+
+        return True
 
     def set_current_user(self, username):
         username = username.strip().lower()
@@ -551,8 +563,8 @@ class AuraAssistant:
         self.waiting_for_username = True
 
         return (
-            f"Nice to meet you, {name}. "
-            f"What username would you like?"
+            f"Hello {name}. "
+            f"What username would you like for AURA?"
         )
 
     def handle_first_username(self, command):
