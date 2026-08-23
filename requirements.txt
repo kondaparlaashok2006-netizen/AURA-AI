@@ -11,3 +11,4 @@ Flask-Cors
 psycopg[binary]
 python-dotenv
 gunicorn
+pyttsx3
