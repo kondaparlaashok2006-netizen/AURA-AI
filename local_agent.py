@@ -1,8 +1,11 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 
-import subprocess
+import json
 import os
+import re
+import shutil
+import subprocess
 
 
 app = Flask(__name__)
@@ -13,93 +16,323 @@ CORS(app)
 # ALLOWED WINDOWS APPLICATIONS
 # =========================================================
 
-APPLICATIONS = {
 
-    "notepad": "notepad.exe",
-
-    "calculator": "calc.exe",
-
-    "paint": "mspaint.exe",
-
-    "command prompt": "cmd.exe",
-
-    "powershell": "powershell.exe",
-
-}
 
 
 # =========================================================
 # OPEN APPLICATION
 # =========================================================
 
+def normalize_app_command(command):
+
+    command = str(command or "").lower().strip()
+
+    command = re.sub(
+        r"^(open|launch|start|go to|bring up)\s+",
+        "",
+        command
+    )
+
+    command = re.sub(
+        r"\s+(app|application)$",
+        "",
+        command
+    )
+
+    command = re.sub(
+        r"\s+",
+        " ",
+        command
+    ).strip()
+
+    return command
+
+
+def get_windows_applications():
+
+    powershell = shutil.which("powershell.exe")
+
+    if not powershell:
+        print("AURA APP SEARCH: PowerShell not found.")
+        return []
+
+    script = r'''
+$ErrorActionPreference = "SilentlyContinue"
+
+Get-StartApps |
+    Select-Object Name, AppID |
+    ConvertTo-Json -Compress
+'''
+
+    try:
+
+        result = subprocess.run(
+            [
+                powershell,
+                "-NoProfile",
+                "-NonInteractive",
+                "-Command",
+                script
+            ],
+            capture_output=True,
+            text=True,
+            timeout=8
+        )
+
+        if result.returncode != 0:
+            print(
+                "AURA APP SEARCH ERROR:",
+                result.stderr.strip()
+            )
+            return []
+
+        output = result.stdout.strip()
+
+        if not output:
+            return []
+
+        data = json.loads(output)
+
+        if isinstance(data, dict):
+            data = [data]
+
+        applications = []
+
+        for item in data:
+
+            name = str(
+                item.get("Name", "")
+            ).strip()
+
+            app_id = str(
+                item.get("AppID", "")
+            ).strip()
+
+            if name and app_id:
+
+                applications.append({
+                    "name": name,
+                    "app_id": app_id
+                })
+
+        print(
+            "AURA APP SEARCH:",
+            len(applications),
+            "Windows applications found"
+        )
+
+        return applications
+
+    except Exception as error:
+
+        print(
+            "AURA APP SEARCH ERROR:",
+            error
+        )
+
+        return []
+
+
 def open_application(command):
 
-    command = command.lower().strip()
+    command = str(
+        command or ""
+    ).strip()
+
+    lower = command.lower()
 
     # -----------------------------------------------------
-    # VS CODE
+    # NEVER OPEN A DESKTOP APP FOR AN EXPLICIT WEB COMMAND
     # -----------------------------------------------------
 
-    if "vs code" in command or "vscode" in command:
+    web_words = {
+        "web",
+        "website",
+        "online",
+        "browser",
+        "site"
+    }
 
-        paths = [
-
-            os.path.expandvars(
-                r"%LOCALAPPDATA%\Programs\Microsoft VS Code\Code.exe"
-            ),
-
-            os.path.expandvars(
-                r"%ProgramFiles%\Microsoft VS Code\Code.exe"
-            ),
-
-        ]
-
-        for path in paths:
-
-            if os.path.exists(path):
-
-                subprocess.Popen([path])
-
-                return "Opening VS Code."
-
-        return "VS Code was not found on this computer."
-
-
-    # -----------------------------------------------------
-    # FILE EXPLORER
-    # -----------------------------------------------------
+    command_words = set(
+        lower.split()
+    )
 
     if (
-        "file explorer" in command
-        or command == "explorer"
-        or "open explorer" in command
+        web_words.intersection(command_words)
+        or
+        "web version" in lower
     ):
+        return None
 
-        subprocess.Popen(["explorer.exe"])
+    requested = normalize_app_command(
+        command
+    )
 
-        return "Opening File Explorer."
-
+    if not requested:
+        return None
 
     # -----------------------------------------------------
-    # NORMAL APPLICATIONS
+    # WINDOWS BUILT-IN APPLICATIONS
     # -----------------------------------------------------
 
-    for name, executable in APPLICATIONS.items():
+    built_in_apps = {
 
-        if name in command:
+        "calculator": "calc.exe",
+        "calc": "calc.exe",
+
+        "notepad": "notepad.exe",
+
+        "paint": "mspaint.exe",
+
+        "command prompt": "cmd.exe",
+        "cmd": "cmd.exe",
+
+        "powershell": "powershell.exe",
+
+        "file explorer": "explorer.exe",
+        "explorer": "explorer.exe",
+    }
+
+    if requested in built_in_apps:
+
+        executable = built_in_apps[
+            requested
+        ]
+
+        try:
+
+            subprocess.Popen(
+                [executable]
+            )
+
+            return (
+                f"Opening {requested.title()}."
+            )
+
+        except Exception as error:
+
+            print(
+                "AURA BUILT-IN APP ERROR:",
+                error
+            )
+
+            return (
+                f"I couldn't open "
+                f"{requested.title()}."
+            )
+
+    # -----------------------------------------------------
+    # SEARCH ALL WINDOWS START-MENU APPLICATIONS
+    # -----------------------------------------------------
+
+    applications = get_windows_applications()
+
+    if not applications:
+        return None
+
+    # -----------------------------------------------------
+    # EXACT MATCH
+    # -----------------------------------------------------
+
+    for application in applications:
+
+        app_name = normalize_app_command(
+            application["name"]
+        )
+
+        if requested == app_name:
 
             try:
 
-                subprocess.Popen(executable)
+                subprocess.Popen(
+                    [
+                        "explorer.exe",
+                        "shell:AppsFolder\\"
+                        + application["app_id"]
+                    ]
+                )
 
-                return f"Opening {name.title()}."
+                return (
+                    f"Opening "
+                    f"{application['name']}."
+                )
 
             except Exception as error:
 
-                print("APPLICATION ERROR:", error)
+                print(
+                    "AURA APPLICATION ERROR:",
+                    error
+                )
 
-                return f"I couldn't open {name}."
+                return (
+                    f"I found "
+                    f"{application['name']}, "
+                    f"but I couldn't open it."
+                )
 
+    # -----------------------------------------------------
+    # PARTIAL MATCH
+    # -----------------------------------------------------
+
+    matches = []
+
+    for application in applications:
+
+        app_name = normalize_app_command(
+            application["name"]
+        )
+
+        if (
+            requested in app_name
+            or
+            app_name in requested
+        ):
+
+            matches.append(
+                application
+            )
+
+    if matches:
+
+        # Prefer the closest/shortest name.
+        matches.sort(
+            key=lambda item:
+                len(
+                    normalize_app_command(
+                        item["name"]
+                    )
+                )
+        )
+
+        application = matches[0]
+
+        try:
+
+            subprocess.Popen(
+                [
+                    "explorer.exe",
+                    "shell:AppsFolder\\"
+                    + application["app_id"]
+                ]
+            )
+
+            return (
+                f"Opening "
+                f"{application['name']}."
+            )
+
+        except Exception as error:
+
+            print(
+                "AURA APPLICATION ERROR:",
+                error
+            )
+
+            return (
+                f"I found "
+                f"{application['name']}, "
+                f"but I couldn't open it."
+            )
 
     return None
 
@@ -157,6 +390,159 @@ def open_folder(command):
 # COMMAND
 # =========================================================
 
+def system_command(command):
+
+    command = str(
+        command or ""
+    ).lower().strip()
+
+    # -----------------------------------------------------
+    # LOCK SCREEN
+    # -----------------------------------------------------
+
+    if command in [
+        "lock screen",
+        "lock my screen",
+        "lock the screen",
+        "lock computer",
+        "lock my computer",
+    ]:
+
+        try:
+
+            subprocess.Popen(
+                [
+                    "rundll32.exe",
+                    "user32.dll,LockWorkStation"
+                ],
+                creationflags=subprocess.CREATE_NO_WINDOW
+            )
+
+            return "Locking your screen."
+
+        except Exception as error:
+
+            print(
+                "LOCK ERROR:",
+                error
+            )
+
+            return "I couldn't lock the screen."
+
+    # -----------------------------------------------------
+    # SHUTDOWN
+    # -----------------------------------------------------
+
+    if command in [
+        "shutdown computer",
+        "shutdown my computer",
+        "shut down computer",
+        "shut down my computer",
+        "turn off computer",
+        "turn off my computer",
+    ]:
+
+        try:
+
+            subprocess.Popen(
+                [
+                    "shutdown",
+                    "/s",
+                    "/t",
+                    "5"
+                ],
+                creationflags=subprocess.CREATE_NO_WINDOW
+            )
+
+            return (
+                "The computer will shut down "
+                "in five seconds."
+            )
+
+        except Exception as error:
+
+            print(
+                "SHUTDOWN ERROR:",
+                error
+            )
+
+            return "I couldn't shut down the computer."
+
+    # -----------------------------------------------------
+    # RESTART
+    # -----------------------------------------------------
+
+    if command in [
+        "restart computer",
+        "restart my computer",
+        "reboot computer",
+        "reboot my computer",
+    ]:
+
+        try:
+
+            subprocess.Popen(
+                [
+                    "shutdown",
+                    "/r",
+                    "/t",
+                    "5"
+                ],
+                creationflags=subprocess.CREATE_NO_WINDOW
+            )
+
+            return (
+                "The computer will restart "
+                "in five seconds."
+            )
+
+        except Exception as error:
+
+            print(
+                "RESTART ERROR:",
+                error
+            )
+
+            return "I couldn't restart the computer."
+
+    # -----------------------------------------------------
+    # CANCEL SHUTDOWN / RESTART
+    # -----------------------------------------------------
+
+    if command in [
+        "cancel shutdown",
+        "cancel restart",
+        "stop shutdown",
+    ]:
+
+        try:
+
+            subprocess.Popen(
+                [
+                    "shutdown",
+                    "/a"
+                ],
+                creationflags=subprocess.CREATE_NO_WINDOW
+            )
+
+            return (
+                "The pending shutdown "
+                "or restart was cancelled."
+            )
+
+        except Exception as error:
+
+            print(
+                "CANCEL ERROR:",
+                error
+            )
+
+            return (
+                "There is no pending "
+                "shutdown to cancel."
+            )
+
+    return None
 @app.route("/command", methods=["POST"])
 def command():
 
@@ -186,6 +572,21 @@ def command():
     # -----------------------------------------------------
 
     response = open_application(
+        user_command
+    )
+
+    if response:
+
+        return jsonify({
+            "response": response
+        })
+
+
+    # -----------------------------------------------------
+    # SYSTEM COMMAND
+    # -----------------------------------------------------
+
+    response = system_command(
         user_command
     )
 

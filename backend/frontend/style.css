@@ -1,0 +1,5657 @@
+/* =========================================================
+   AURA AI — FUTURISTIC BLUE UI
+   Existing structure preserved
+   ========================================================= */
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+:root {
+    --bg: #020611;
+    --bg-two: #061127;
+
+    --panel: rgba(8, 18, 40, 0.76);
+    --panel-light: rgba(14, 31, 63, 0.72);
+    --panel-border: rgba(80, 170, 255, 0.16);
+
+    --text: #f4f9ff;
+    --muted: #8295b5;
+
+    --accent: #27a9ff;
+    --accent-bright: #55c7ff;
+    --accent-deep: #1264ff;
+
+    --accent-soft: rgba(39, 169, 255, 0.13);
+    --accent-glow: rgba(39, 169, 255, 0.38);
+
+    --success: #42e8b0;
+    --warning: #ffd166;
+    --danger: #ff647c;
+
+    --shadow:
+        0 25px 80px rgba(0, 0, 0, 0.55);
+
+    --blue-shadow:
+        0 0 35px rgba(39, 169, 255, 0.20);
+}
+
+
+/* =========================================================
+   BASE
+   ========================================================= */
+
+html,
+body {
+    width: 100%;
+    min-height: 100%;
+}
+
+body {
+    font-family:
+        Inter,
+        "Segoe UI",
+        Arial,
+        sans-serif;
+
+    color: var(--text);
+
+    min-height: 100vh;
+
+    display: flex;
+    justify-content: center;
+
+    overflow-x: hidden;
+
+    background:
+        radial-gradient(
+            circle at 50% 12%,
+            rgba(39, 169, 255, 0.15),
+            transparent 28%
+        ),
+        radial-gradient(
+            circle at 10% 70%,
+            rgba(18, 100, 255, 0.08),
+            transparent 30%
+        ),
+        radial-gradient(
+            circle at 90% 80%,
+            rgba(39, 169, 255, 0.06),
+            transparent 30%
+        ),
+        linear-gradient(
+            145deg,
+            var(--bg),
+            var(--bg-two)
+        );
+}
+
+
+/* Subtle futuristic grid */
+
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+
+    pointer-events: none;
+
+    opacity: 0.18;
+
+    background-image:
+        linear-gradient(
+            rgba(60, 160, 255, 0.035) 1px,
+            transparent 1px
+        ),
+        linear-gradient(
+            90deg,
+            rgba(60, 160, 255, 0.035) 1px,
+            transparent 1px
+        );
+
+    background-size: 42px 42px;
+
+    mask-image:
+        linear-gradient(
+            to bottom,
+            black,
+            transparent 90%
+        );
+}
+
+
+/* =========================================================
+   APP
+   ========================================================= */
+
+.aura-app {
+    width: min(
+        1100px,
+        calc(100% - 32px)
+    );
+
+    min-height: 100vh;
+
+    padding:
+        28px
+        0
+        24px;
+
+    display: flex;
+    flex-direction: column;
+
+    position: relative;
+}
+
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+.top-bar {
+    width: 100%;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 20px;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+
+    gap: 14px;
+}
+
+
+/* Blue AURA mini orb */
+
+.brand-orb {
+    width: 48px;
+    height: 48px;
+
+    border-radius: 50%;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 22px;
+    font-weight: 900;
+
+    color: white;
+
+    background:
+        radial-gradient(
+            circle at 35% 25%,
+            #ffffff 0%,
+            #8be1ff 12%,
+            var(--accent) 34%,
+            var(--accent-deep) 68%,
+            #04112d 100%
+        );
+
+    border:
+        1px solid
+        rgba(116, 214, 255, 0.45);
+
+    box-shadow:
+        0 0 18px rgba(39, 169, 255, 0.35),
+        0 0 45px rgba(18, 100, 255, 0.18),
+        inset 0 0 18px rgba(255, 255, 255, 0.15);
+
+    animation:
+        miniOrbFloat 4s ease-in-out infinite;
+}
+
+.brand h1 {
+    font-size: 20px;
+    letter-spacing: 4px;
+
+    text-shadow:
+        0 0 18px
+        rgba(39, 169, 255, 0.3);
+}
+
+.brand span {
+    display: block;
+
+    margin-top: 3px;
+
+    color: var(--muted);
+
+    font-size: 12px;
+}
+
+
+/* =========================================================
+   STATUS
+   ========================================================= */
+
+.system-status {
+    padding:
+        8px
+        14px;
+
+    border-radius: 999px;
+
+    border:
+        1px solid
+        rgba(39, 169, 255, 0.18);
+
+    background:
+        rgba(6, 20, 43, 0.65);
+
+    color: var(--success);
+
+    font-size: 12px;
+    font-weight: 600;
+
+    backdrop-filter: blur(15px);
+
+    transition:
+        0.25s ease;
+
+    box-shadow:
+        inset 0 0 12px
+        rgba(39, 169, 255, 0.035);
+}
+
+.system-status.ready {
+    color: var(--success);
+}
+
+.system-status.listening {
+    color: var(--accent-bright);
+
+    border-color:
+        rgba(39, 169, 255, 0.45);
+
+    box-shadow:
+        0 0 20px
+        rgba(39, 169, 255, 0.18);
+}
+
+.system-status.processing {
+    color: var(--warning);
+}
+
+.system-status.speaking {
+    color: var(--accent-bright);
+
+    box-shadow:
+        0 0 25px
+        rgba(39, 169, 255, 0.22);
+}
+
+.system-status.idle {
+    color: var(--warning);
+}
+
+
+/* =========================================================
+   CORE
+   ========================================================= */
+
+.core-section {
+    position: relative;
+
+    width: 320px;
+    height: 320px;
+
+    margin:
+        55px
+        auto
+        30px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+}
+
+
+/* Main AURA core */
+
+.aura-core {
+    position: relative;
+
+    width: 150px;
+    height: 150px;
+
+    border-radius: 50%;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background:
+        radial-gradient(
+            circle at 34% 27%,
+            #ffffff 0%,
+            #a9ecff 9%,
+            #4fc7ff 20%,
+            #168eff 42%,
+            #0844b9 66%,
+            #020c25 100%
+        );
+
+    border:
+        1px solid
+        rgba(126, 221, 255, 0.5);
+
+    box-shadow:
+        0 0 28px
+        rgba(39, 169, 255, 0.48),
+
+        0 0 75px
+        rgba(18, 100, 255, 0.25),
+
+        inset 0 0 35px
+        rgba(255, 255, 255, 0.14);
+
+    transition:
+        0.3s ease;
+
+    animation:
+        coreFloat 4.5s ease-in-out infinite;
+}
+
+.core-letter {
+    position: relative;
+
+    z-index: 2;
+
+    font-size: 64px;
+    font-weight: 900;
+
+    color: white;
+
+    text-shadow:
+        0 0 12px rgba(255, 255, 255, 0.95),
+        0 0 35px rgba(80, 205, 255, 0.75);
+}
+
+.core-pulse {
+    position: absolute;
+
+    inset: 15px;
+
+    border-radius: 50%;
+
+    border:
+        1px solid
+        rgba(190, 240, 255, 0.42);
+
+    box-shadow:
+        inset 0 0 20px
+        rgba(74, 198, 255, 0.18);
+
+    animation:
+        auraPulse
+        2.5s
+        ease-in-out
+        infinite;
+}
+
+
+/* Core states */
+
+.aura-core.listening {
+    box-shadow:
+        0 0 45px
+        rgba(39, 169, 255, 0.75),
+
+        0 0 100px
+        rgba(39, 169, 255, 0.35),
+
+        inset 0 0 35px
+        rgba(255, 255, 255, 0.15);
+
+    transform: scale(1.035);
+}
+
+.aura-core.processing {
+    box-shadow:
+        0 0 55px
+        rgba(255, 209, 102, 0.5),
+
+        0 0 100px
+        rgba(255, 180, 50, 0.18);
+}
+
+.aura-core.speaking {
+    box-shadow:
+        0 0 65px
+        rgba(39, 169, 255, 0.85),
+
+        0 0 120px
+        rgba(18, 100, 255, 0.4),
+
+        inset 0 0 40px
+        rgba(255, 255, 255, 0.18);
+
+    animation:
+        speakingCore 1.1s ease-in-out infinite;
+}
+
+.aura-core.idle {
+    opacity: 0.72;
+
+    box-shadow:
+        0 0 25px
+        rgba(39, 169, 255, 0.22);
+}
+
+
+/* Core label */
+
+.core-label {
+    position: absolute;
+
+    bottom: 5px;
+
+    left: 0;
+    right: 0;
+
+    text-align: center;
+
+    color: var(--accent-bright);
+
+    font-size: 11px;
+
+    letter-spacing: 5px;
+
+    text-shadow:
+        0 0 12px
+        rgba(39, 169, 255, 0.45);
+}
+
+
+/* =========================================================
+   RINGS
+   ========================================================= */
+
+.core-ring {
+    position: absolute;
+
+    border-radius: 50%;
+
+    border:
+        1px solid
+        rgba(39, 169, 255, 0.18);
+
+    box-shadow:
+        0 0 15px
+        rgba(39, 169, 255, 0.05);
+}
+
+.ring-one {
+    width: 210px;
+    height: 210px;
+
+    animation:
+        rotateRing
+        12s
+        linear
+        infinite;
+}
+
+.ring-two {
+    width: 260px;
+    height: 260px;
+
+    border-style: dashed;
+
+    border-color:
+        rgba(39, 169, 255, 0.2);
+
+    animation:
+        rotateRingReverse
+        18s
+        linear
+        infinite;
+}
+
+.ring-three {
+    width: 310px;
+    height: 310px;
+
+    opacity: 0.6;
+
+    border-color:
+        rgba(39, 169, 255, 0.12);
+
+    animation:
+        rotateRing
+        25s
+        linear
+        infinite;
+}
+
+
+/* =========================================================
+   CONVERSATION
+   ========================================================= */
+
+.conversation-panel {
+    width: 100%;
+
+    display: grid;
+
+    grid-template-columns:
+        1fr 1fr;
+
+    gap: 16px;
+}
+
+.message-block {
+    min-height: 145px;
+
+    padding: 22px;
+
+    border-radius: 18px;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(12, 31, 63, 0.78),
+            rgba(5, 14, 31, 0.78)
+        );
+
+    border:
+        1px solid
+        var(--panel-border);
+
+    box-shadow:
+        var(--shadow),
+        inset 0 0 25px
+        rgba(39, 169, 255, 0.025);
+
+    backdrop-filter:
+        blur(20px);
+
+    transition:
+        border-color 0.25s ease,
+        transform 0.25s ease,
+        box-shadow 0.25s ease;
+}
+
+.message-block:hover {
+    border-color:
+        rgba(39, 169, 255, 0.28);
+
+    box-shadow:
+        var(--shadow),
+        0 0 25px
+        rgba(39, 169, 255, 0.07);
+}
+
+.message-title {
+    margin-bottom: 12px;
+
+    font-size: 11px;
+
+    letter-spacing: 3px;
+
+    color: var(--accent-bright);
+}
+
+.message-text {
+    line-height: 1.7;
+
+    color: var(--text);
+
+    font-size: 15px;
+
+    word-break: break-word;
+}
+
+.message-block {
+    position: relative;
+    overflow: hidden;
+}
+
+.message-block::before {
+    content: "";
+
+    position: absolute;
+
+    top: 0;
+    left: 0;
+
+    width: 3px;
+    height: 100%;
+
+    background: linear-gradient(
+        to bottom,
+        transparent,
+        var(--accent-bright),
+        transparent
+    );
+
+    opacity: 0;
+
+    transition:
+        opacity 0.25s ease;
+}
+
+.message-block.active::before {
+    opacity: 1;
+
+    animation:
+        messageLine 1.2s ease-in-out;
+}
+
+.user-message.active {
+    border-color:
+        rgba(39, 169, 255, 0.35);
+
+    box-shadow:
+        0 0 28px
+        rgba(39, 169, 255, 0.09),
+
+        inset 0 0 25px
+        rgba(39, 169, 255, 0.035);
+}
+
+.aura-message.active {
+    border-color:
+        rgba(85, 199, 255, 0.42);
+
+    box-shadow:
+        0 0 32px
+        rgba(39, 169, 255, 0.13),
+
+        inset 0 0 28px
+        rgba(39, 169, 255, 0.045);
+}
+
+.message-text.updated {
+    animation:
+        conversationUpdate
+        0.35s
+        ease-out;
+}
+
+@keyframes conversationUpdate {
+
+    0% {
+        opacity: 0;
+        transform: translateY(6px);
+        filter: blur(2px);
+    }
+
+    60% {
+        opacity: 1;
+        transform: translateY(-1px);
+        filter: blur(0);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+        filter: blur(0);
+    }
+}
+
+@keyframes messageLine {
+
+    0% {
+        transform: translateY(-100%);
+    }
+
+    50% {
+        transform: translateY(0);
+    }
+
+    100% {
+        transform: translateY(100%);
+    }
+}
+
+
+/* =========================================================
+   CONTROLS
+   ========================================================= */
+
+.controls {
+    width: 100%;
+
+    display: grid;
+
+    grid-template-columns:
+        1fr 1fr 1fr;
+
+    gap: 16px;
+
+    margin-top: 18px;
+}
+
+.control-button {
+    min-width: 0;
+
+    border:
+        1px solid
+        var(--panel-border);
+
+    border-radius: 18px;
+
+    padding: 18px 20px;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 15px;
+
+    color: var(--text);
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(16, 37, 72, 0.72),
+            rgba(6, 16, 34, 0.72)
+        );
+
+    cursor: pointer;
+
+    transition:
+        transform 0.2s ease,
+        border-color 0.2s ease,
+        background 0.2s ease,
+        box-shadow 0.2s ease;
+
+    box-shadow:
+        inset 0 0 18px
+        rgba(39, 169, 255, 0.025);
+}
+
+.control-button:hover {
+    transform:
+        translateY(-2px);
+
+    border-color:
+        rgba(39, 169, 255, 0.5);
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(18, 53, 100, 0.8),
+            rgba(7, 21, 44, 0.8)
+        );
+
+    box-shadow:
+        0 0 25px
+        rgba(39, 169, 255, 0.11);
+}
+
+.control-button:active {
+    transform:
+        translateY(0)
+        scale(0.985);
+}
+
+
+/* Active buttons */
+
+.control-button.active {
+    border-color:
+        rgba(39, 169, 255, 0.7);
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(20, 71, 125, 0.78),
+            rgba(7, 27, 58, 0.8)
+        );
+
+    box-shadow:
+        0 0 30px
+        rgba(39, 169, 255, 0.18),
+
+        inset 0 0 20px
+        rgba(39, 169, 255, 0.07);
+}
+
+
+/* Button icon */
+
+.button-icon {
+    flex:
+        0 0
+        42px;
+
+    width: 42px;
+    height: 42px;
+
+    border-radius: 12px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    background:
+        rgba(39, 169, 255, 0.1);
+
+    border:
+        1px solid
+        rgba(39, 169, 255, 0.12);
+
+    color:
+        var(--accent-bright);
+
+    transition:
+        0.25s ease;
+}
+
+.control-button:hover .button-icon {
+    background:
+        rgba(39, 169, 255, 0.17);
+
+    box-shadow:
+        0 0 18px
+        rgba(39, 169, 255, 0.12);
+}
+
+.control-button.active .button-icon {
+    animation:
+        iconPulse
+        1.4s
+        ease-in-out
+        infinite;
+}
+
+.button-icon svg {
+    width: 22px;
+    height: 22px;
+
+    fill: none;
+
+    stroke:
+        currentColor;
+
+    stroke-width: 1.7;
+
+    stroke-linecap: round;
+
+    stroke-linejoin: round;
+}
+
+.button-content {
+    min-width: 0;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: flex-start;
+
+    gap: 4px;
+}
+
+.button-content strong {
+    font-size: 14px;
+}
+
+.button-content small {
+    color: var(--muted);
+
+    font-size: 11px;
+
+    white-space: nowrap;
+}
+
+
+/* =========================================================
+   TEXT COMMAND PANEL
+   ========================================================= */
+
+.text-command-panel {
+    width: 100%;
+
+    max-height: 0;
+
+    opacity: 0;
+
+    overflow: hidden;
+
+    margin-top: 0;
+
+    transform:
+        translateY(-8px)
+        scale(0.98);
+
+    pointer-events: none;
+
+    transition:
+        max-height 0.35s ease,
+        opacity 0.25s ease,
+        margin-top 0.35s ease,
+        transform 0.35s ease;
+}
+
+.text-command-panel.visible {
+    max-height: 100px;
+
+    opacity: 1;
+
+    margin-top: 16px;
+
+    transform:
+        translateY(0)
+        scale(1);
+
+    pointer-events: auto;
+}
+
+.text-command-wrapper {
+    position: relative;
+
+    width: 100%;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+    padding: 8px;
+
+    border-radius: 18px;
+
+    border:
+        1px solid
+        rgba(39, 169, 255, 0.3);
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(10, 29, 60, 0.92),
+            rgba(4, 13, 30, 0.94)
+        );
+
+    box-shadow:
+        0 0 30px
+        rgba(39, 169, 255, 0.1),
+
+        inset 0 0 20px
+        rgba(39, 169, 255, 0.035);
+
+    backdrop-filter:
+        blur(20px);
+}
+
+.text-command-input {
+    flex: 1;
+
+    min-width: 0;
+
+    height: 48px;
+
+    border: none;
+    outline: none;
+
+    padding:
+        0
+        14px;
+
+    border-radius: 12px;
+
+    background:
+        rgba(255, 255, 255, 0.035);
+
+    color:
+        var(--text);
+
+    font-family: inherit;
+
+    font-size: 14px;
+
+    transition:
+        background 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.text-command-input::placeholder {
+    color:
+        rgba(130, 149, 181, 0.65);
+}
+
+.text-command-input:focus {
+    background:
+        rgba(39, 169, 255, 0.055);
+
+    box-shadow:
+        inset 0 0 0 1px
+        rgba(39, 169, 255, 0.18);
+}
+
+
+/* Send button */
+
+.send-command-button {
+    height: 48px;
+
+    border: none;
+
+    padding:
+        0
+        17px;
+
+    border-radius: 12px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: 8px;
+
+    color: white;
+
+    font-family: inherit;
+    font-weight: 700;
+
+    background:
+        linear-gradient(
+            135deg,
+            var(--accent-bright),
+            var(--accent-deep)
+        );
+
+    cursor: pointer;
+
+    box-shadow:
+        0 0 20px
+        rgba(39, 169, 255, 0.2);
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.send-command-button:hover {
+    transform:
+        translateY(-1px);
+
+    box-shadow:
+        0 0 30px
+        rgba(39, 169, 255, 0.4);
+}
+
+.send-command-button svg {
+    width: 17px;
+    height: 17px;
+
+    fill: none;
+
+    stroke: currentColor;
+
+    stroke-width: 1.8;
+
+    stroke-linecap: round;
+
+    stroke-linejoin: round;
+}
+
+
+/* Close button */
+
+.close-command-button {
+    width: 34px;
+    height: 34px;
+
+    flex:
+        0 0
+        34px;
+
+    border: none;
+
+    border-radius: 50%;
+
+    background:
+        rgba(255, 255, 255, 0.045);
+
+    color:
+        var(--muted);
+
+    font-size: 22px;
+
+    line-height: 1;
+
+    cursor: pointer;
+
+    transition:
+        0.2s ease;
+}
+
+.close-command-button:hover {
+    color: white;
+
+    background:
+        rgba(255, 80, 100, 0.12);
+}
+
+
+/* =========================================================
+   MODE INFO
+   ========================================================= */
+
+.mode-info {
+    margin-top: 16px;
+
+    display: flex;
+
+    justify-content: center;
+
+    gap: 25px;
+
+    flex-wrap: wrap;
+
+    color: var(--muted);
+
+    font-size: 11px;
+}
+
+.mode-item {
+    display: flex;
+
+    align-items: center;
+
+    gap: 7px;
+}
+
+.mode-dot {
+    width: 6px;
+    height: 6px;
+
+    border-radius: 50%;
+
+    background:
+        rgba(39, 169, 255, 0.4);
+
+    box-shadow:
+        0 0 8px
+        rgba(39, 169, 255, 0.25);
+}
+
+
+/* =========================================================
+   FOOTER
+   ========================================================= */
+
+footer {
+    margin-top: auto;
+
+    padding-top: 30px;
+
+    display: flex;
+
+    justify-content: center;
+
+    gap: 8px;
+
+    color: #536580;
+
+    font-size: 11px;
+}
+
+
+/* =========================================================
+   ANIMATIONS
+   ========================================================= */
+
+@keyframes auraPulse {
+
+    0%,
+    100% {
+        transform:
+            scale(0.94);
+
+        opacity: 0.35;
+    }
+
+    50% {
+        transform:
+            scale(1.06);
+
+        opacity: 0.85;
+    }
+}
+
+
+@keyframes rotateRing {
+
+    from {
+        transform:
+            rotate(0deg);
+    }
+
+    to {
+        transform:
+            rotate(360deg);
+    }
+}
+
+
+@keyframes rotateRingReverse {
+
+    from {
+        transform:
+            rotate(360deg);
+    }
+
+    to {
+        transform:
+            rotate(0deg);
+    }
+}
+
+
+@keyframes messageIn {
+
+    from {
+        opacity: 0;
+
+        transform:
+            translateY(4px);
+    }
+
+    to {
+        opacity: 1;
+
+        transform:
+            translateY(0);
+    }
+}
+
+
+@keyframes coreFloat {
+
+    0%,
+    100% {
+        transform:
+            translateY(0);
+    }
+
+    50% {
+        transform:
+            translateY(-5px);
+    }
+}
+
+
+@keyframes speakingCore {
+
+    0%,
+    100% {
+        transform:
+            scale(1);
+    }
+
+    50% {
+        transform:
+            scale(1.045);
+    }
+}
+
+
+@keyframes miniOrbFloat {
+
+    0%,
+    100% {
+        transform:
+            translateY(0);
+    }
+
+    50% {
+        transform:
+            translateY(-2px);
+    }
+}
+
+
+@keyframes iconPulse {
+
+    0%,
+    100% {
+        transform:
+            scale(1);
+    }
+
+    50% {
+        transform:
+            scale(1.08);
+    }
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (
+    max-width: 720px
+) {
+
+    .aura-app {
+        width:
+            calc(100% - 20px);
+
+        padding-top:
+            18px;
+    }
+
+
+    .top-bar {
+        align-items:
+            flex-start;
+    }
+
+
+    .brand {
+        gap: 10px;
+    }
+
+
+    .brand-orb {
+        width: 42px;
+        height: 42px;
+
+        font-size: 19px;
+    }
+
+
+    .brand h1 {
+        font-size: 18px;
+
+        letter-spacing: 3px;
+    }
+
+
+    .brand span {
+        font-size: 10px;
+    }
+
+
+    .system-status {
+        font-size: 10px;
+
+        padding:
+            7px
+            10px;
+    }
+
+
+    .core-section {
+        width: 270px;
+        height: 270px;
+
+        margin-top:
+            35px;
+    }
+
+
+    .aura-core {
+        width: 125px;
+        height: 125px;
+    }
+
+
+    .core-letter {
+        font-size: 50px;
+    }
+
+
+    .ring-one {
+        width: 175px;
+        height: 175px;
+    }
+
+
+    .ring-two {
+        width: 220px;
+        height: 220px;
+    }
+
+
+    .ring-three {
+        width: 265px;
+        height: 265px;
+    }
+
+
+    .conversation-panel,
+    .controls {
+        grid-template-columns:
+            1fr;
+    }
+
+
+    .message-block {
+        min-height: 120px;
+    }
+
+
+    .control-button {
+        padding:
+            15px
+            16px;
+    }
+
+
+    .text-command-wrapper {
+        gap: 7px;
+    }
+
+
+    .send-command-button {
+        padding:
+            0
+            13px;
+    }
+
+
+    .send-command-button span {
+        display: none;
+    }
+
+
+    .mode-info {
+        gap: 14px;
+    }
+}
+
+
+/* =========================================================
+   SMALL PHONES
+   ========================================================= */
+
+@media (
+    max-width: 420px
+) {
+
+    .aura-app {
+        width:
+            calc(100% - 16px);
+    }
+
+
+    .top-bar {
+        gap: 8px;
+    }
+
+
+    .system-status {
+        max-width: 115px;
+
+        overflow: hidden;
+
+        text-overflow: ellipsis;
+
+        white-space: nowrap;
+    }
+
+
+    .text-command-input {
+        font-size: 13px;
+    }
+
+
+    .close-command-button {
+        width: 30px;
+        height: 30px;
+
+        flex-basis: 30px;
+    }
+}
+
+
+/* =========================================================
+   ACCESSIBILITY
+   ========================================================= */
+
+button,
+input {
+    -webkit-tap-highlight-color:
+        transparent;
+}
+
+button:focus-visible,
+input:focus-visible {
+    outline:
+        2px solid
+        rgba(85, 199, 255, 0.65);
+
+    outline-offset:
+        2px;
+}
+
+
+/* =========================================================
+   REDUCE MOTION
+   ========================================================= */
+
+@media (
+    prefers-reduced-motion: reduce
+) {
+
+    *,
+    *::before,
+    *::after {
+        animation-duration:
+            0.01ms !important;
+
+        animation-iteration-count:
+            1 !important;
+
+        scroll-behavior:
+            auto !important;
+
+        transition-duration:
+            0.01ms !important;
+    }
+}
+
+
+/* =========================================================
+   FUTURISTIC CONTROL ENHANCEMENT
+   ========================================================= */
+
+.controls {
+    position: relative;
+}
+
+.controls::before {
+    content: "";
+
+    position: absolute;
+
+    left: 12%;
+    right: 12%;
+    top: -1px;
+
+    height: 1px;
+
+    background:
+        linear-gradient(
+            90deg,
+            transparent,
+            rgba(39, 169, 255, 0.35),
+            transparent
+        );
+
+    opacity: 0.7;
+}
+
+.control-button {
+    position: relative;
+
+    overflow: hidden;
+
+    isolation: isolate;
+}
+
+.control-button::before {
+    content: "";
+
+    position: absolute;
+
+    top: 0;
+    left: -120%;
+
+    width: 80%;
+    height: 100%;
+
+    background:
+        linear-gradient(
+            90deg,
+            transparent,
+            rgba(100, 215, 255, 0.08),
+            transparent
+        );
+
+    transform: skewX(-20deg);
+
+    transition:
+        left 0.55s ease;
+
+    pointer-events: none;
+}
+
+.control-button:hover::before {
+    left: 140%;
+}
+
+.control-button::after {
+    content: "";
+
+    position: absolute;
+
+    inset: 0;
+
+    border-radius: inherit;
+
+    border: 1px solid transparent;
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(85, 199, 255, 0.12),
+            transparent 35%,
+            transparent 65%,
+            rgba(18, 100, 255, 0.08)
+        ) border-box;
+
+    mask:
+        linear-gradient(#fff 0 0) padding-box,
+        linear-gradient(#fff 0 0);
+
+    mask-composite: exclude;
+
+    pointer-events: none;
+
+    opacity: 0.8;
+}
+
+.control-button.active::after {
+    opacity: 1;
+
+    animation:
+        controlGlow
+        1.8s
+        ease-in-out
+        infinite;
+}
+
+.control-button.active .button-icon {
+    color:
+        #8de3ff;
+
+    border-color:
+        rgba(85, 199, 255, 0.35);
+
+    background:
+        rgba(39, 169, 255, 0.16);
+
+    box-shadow:
+        0 0 22px
+        rgba(39, 169, 255, 0.22);
+}
+
+.control-button.active .button-content strong {
+    color:
+        #8de3ff;
+
+    text-shadow:
+        0 0 12px
+        rgba(85, 199, 255, 0.25);
+}
+
+.text-command-toggle:hover {
+    transform:
+        translateY(-3px);
+}
+
+@keyframes controlGlow {
+
+    0%,
+    100% {
+        opacity: 0.55;
+    }
+
+    50% {
+        opacity: 1;
+    }
+}
+
+
+/* =========================================================
+   AURA CORE — ADVANCED ACTIVITY EFFECTS
+   ========================================================= */
+
+.aura-core {
+    transition:
+        transform 0.18s ease,
+        box-shadow 0.18s ease,
+        filter 0.18s ease;
+}
+
+/* Listening */
+
+.aura-core.listening {
+    animation:
+        listeningCore 1.15s ease-in-out infinite;
+}
+
+.aura-core.listening .core-pulse {
+    animation:
+        listeningPulse 0.75s ease-in-out infinite;
+}
+
+/* Processing */
+
+.aura-core.processing {
+    animation:
+    none;
+}
+
+.aura-core.processing .core-pulse {
+    animation:
+        processingPulse 1.2s ease-in-out infinite;
+}
+
+/* Speaking */
+
+.aura-core.speaking {
+    animation:
+        speakingCoreAdvanced 0.9s ease-in-out infinite;
+}
+
+.aura-core.speaking .core-pulse {
+    animation:
+        speakingPulse 0.65s ease-in-out infinite;
+}
+
+/* Idle */
+
+.aura-core.idle {
+    animation:
+        idleCore 3s ease-in-out infinite;
+}
+
+/* =========================================================
+   RING ACTIVITY
+   ========================================================= */
+
+.aura-core.listening ~ .core-label {
+    text-shadow:
+        0 0 15px
+        rgba(85, 199, 255, 0.8);
+}
+
+/* =========================================================
+   ANIMATIONS
+   ========================================================= */
+
+@keyframes listeningCore {
+
+    0%,
+    100% {
+        transform:
+            scale(1);
+        filter:
+            brightness(1);
+    }
+
+    50% {
+        transform:
+            scale(1.035);
+        filter:
+            brightness(1.18);
+    }
+}
+
+@keyframes listeningPulse {
+
+    0%,
+    100% {
+        transform:
+            scale(0.88);
+        opacity:
+            0.35;
+    }
+
+    50% {
+        transform:
+            scale(1.08);
+        opacity:
+            0.95;
+    }
+}
+
+@keyframes processingCore {
+
+    0% {
+        transform:
+            rotate(0deg)
+            scale(1);
+    }
+
+    50% {
+        transform:
+            rotate(180deg)
+            scale(1.035);
+    }
+
+    100% {
+        transform:
+            rotate(360deg)
+            scale(1);
+    }
+}
+
+@keyframes processingPulse {
+
+    0%,
+    100% {
+        transform:
+            scale(0.9);
+        opacity:
+            0.35;
+    }
+
+    50% {
+        transform:
+            scale(1.12);
+        opacity:
+            1;
+    }
+}
+
+@keyframes speakingCoreAdvanced {
+
+    0%,
+    100% {
+        transform:
+            scale(1);
+        filter:
+            brightness(1);
+    }
+
+    25% {
+        transform:
+            scale(1.025);
+        filter:
+            brightness(1.12);
+    }
+
+    50% {
+        transform:
+            scale(1.055);
+        filter:
+            brightness(1.22);
+    }
+
+    75% {
+        transform:
+            scale(1.02);
+        filter:
+            brightness(1.08);
+    }
+}
+
+@keyframes speakingPulse {
+
+    0%,
+    100% {
+        transform:
+            scale(0.9);
+        opacity:
+            0.35;
+    }
+
+    50% {
+        transform:
+            scale(1.13);
+        opacity:
+            1;
+    }
+}
+
+@keyframes idleCore {
+
+    0%,
+    100% {
+        opacity:
+            0.62;
+
+        transform:
+            scale(0.96);
+    }
+
+    50% {
+        opacity:
+            0.78;
+
+        transform:
+            scale(1);
+    }
+}
+
+
+/* =========================================================
+   STEP 6 — TEXT COMMAND PREMIUM EFFECT
+   ========================================================= */
+
+.text-command-panel.visible .text-command-wrapper {
+    animation:
+        commandPanelIn
+        0.35s
+        cubic-bezier(.2,.8,.2,1);
+}
+
+.text-command-input {
+    caret-color: var(--accent-bright);
+}
+
+.text-command-input:focus {
+    box-shadow:
+        0 0 0 1px
+        rgba(39, 169, 255, 0.22),
+        0 0 22px
+        rgba(39, 169, 255, 0.08),
+        inset 0 0 20px
+        rgba(39, 169, 255, 0.035);
+}
+
+.text-command-input::selection {
+    background:
+        rgba(39, 169, 255, 0.35);
+
+    color:
+        white;
+}
+
+.send-command-button {
+    position: relative;
+    overflow: hidden;
+}
+
+.send-command-button::before {
+    content: "";
+
+    position: absolute;
+
+    top: 0;
+    left: -100%;
+
+    width: 70%;
+    height: 100%;
+
+    background:
+        linear-gradient(
+            90deg,
+            transparent,
+            rgba(255,255,255,0.25),
+            transparent
+        );
+
+    transform: skewX(-20deg);
+
+    transition:
+        left 0.45s ease;
+}
+
+.send-command-button:hover::before {
+    left: 140%;
+}
+
+.close-command-button {
+    transition:
+        transform 0.2s ease,
+        color 0.2s ease,
+        background 0.2s ease;
+}
+
+.close-command-button:hover {
+    transform:
+        rotate(90deg);
+}
+
+@keyframes commandPanelIn {
+
+    from {
+        opacity: 0;
+        transform:
+            translateY(-8px)
+            scale(0.97);
+    }
+
+    to {
+        opacity: 1;
+        transform:
+            translateY(0)
+            scale(1);
+    }
+}
+
+
+/* =========================================================
+   STEP 7 — SMART STATUS INDICATOR
+   ========================================================= */
+
+.system-status {
+    position: relative;
+
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+
+    overflow: hidden;
+
+    transition:
+        color 0.25s ease,
+        border-color 0.25s ease,
+        box-shadow 0.25s ease,
+        background 0.25s ease;
+}
+
+.system-status::before {
+    content: "";
+
+    width: 6px;
+    height: 6px;
+
+    flex: 0 0 6px;
+
+    border-radius: 50%;
+
+    background: currentColor;
+
+    box-shadow:
+        0 0 9px currentColor;
+
+    transition:
+        transform 0.25s ease;
+}
+
+/* Ready */
+
+.system-status.ready::before {
+    animation:
+        statusReady 2.2s ease-in-out infinite;
+}
+
+/* Listening */
+
+.system-status.listening {
+    color: #55c7ff;
+
+    border-color:
+        rgba(85, 199, 255, 0.42);
+
+    background:
+        rgba(39, 169, 255, 0.08);
+
+    box-shadow:
+        0 0 22px
+        rgba(39, 169, 255, 0.14);
+}
+
+.system-status.listening::before {
+    animation:
+        statusListening 0.7s ease-in-out infinite;
+}
+
+/* Processing */
+
+.system-status.processing {
+    color: #ffd166;
+
+    border-color:
+        rgba(255, 209, 102, 0.35);
+
+    background:
+        rgba(255, 209, 102, 0.055);
+}
+
+.system-status.processing::before {
+    animation:
+        statusProcessing 0.8s linear infinite;
+}
+
+/* Speaking */
+
+.system-status.speaking {
+    color: #7ddcff;
+
+    border-color:
+        rgba(85, 199, 255, 0.48);
+
+    background:
+        rgba(39, 169, 255, 0.09);
+
+    box-shadow:
+        0 0 25px
+        rgba(39, 169, 255, 0.17);
+}
+
+.system-status.speaking::before {
+    animation:
+        statusSpeaking 0.6s ease-in-out infinite;
+}
+
+/* Idle */
+
+.system-status.idle {
+    color: #8ba5c7;
+
+    border-color:
+        rgba(120, 150, 190, 0.22);
+
+    background:
+        rgba(80, 100, 130, 0.05);
+}
+
+.system-status.idle::before {
+    opacity: 0.55;
+}
+
+/* =========================================================
+   STATUS ANIMATIONS
+   ========================================================= */
+
+@keyframes statusReady {
+
+    0%,
+    100% {
+        transform: scale(0.8);
+        opacity: 0.55;
+    }
+
+    50% {
+        transform: scale(1.15);
+        opacity: 1;
+    }
+}
+
+@keyframes statusListening {
+
+    0%,
+    100% {
+        transform: scale(0.75);
+        opacity: 0.55;
+    }
+
+    50% {
+        transform: scale(1.35);
+        opacity: 1;
+    }
+}
+
+@keyframes statusProcessing {
+
+    from {
+        transform: rotate(0deg);
+        opacity: 0.65;
+    }
+
+    to {
+        transform: rotate(360deg);
+        opacity: 1;
+    }
+}
+
+@keyframes statusSpeaking {
+
+    0%,
+    100% {
+        transform: scale(0.8);
+    }
+
+    50% {
+        transform: scale(1.4);
+    }
+}
+/* =========================================================
+   STEP 8 — AURA ENERGY HALO
+   ========================================================= */
+
+.aura-core::before,
+.aura-core::after {
+    content: "";
+
+    position: absolute;
+
+    inset: -12px;
+
+    border-radius: 50%;
+
+    pointer-events: none;
+}
+
+
+/* Inner energy halo */
+
+.aura-core::before {
+    border:
+        1px solid
+        rgba(85, 199, 255, 0.18);
+
+    box-shadow:
+        0 0 25px
+        rgba(39, 169, 255, 0.14),
+
+        inset 0 0 18px
+        rgba(39, 169, 255, 0.08);
+
+    animation:
+        energyHalo 3s ease-in-out infinite;
+}
+
+
+/* Outer rotating energy */
+
+.aura-core::after {
+    inset: -22px;
+
+    border:
+        1px dashed
+        rgba(39, 169, 255, 0.12);
+
+    opacity: 0.7;
+
+    animation:
+        energyRotate 10s linear infinite;
+}
+
+
+/* Listening = stronger energy */
+
+.aura-core.listening::before {
+    border-color:
+        rgba(85, 199, 255, 0.38);
+
+    box-shadow:
+        0 0 35px
+        rgba(39, 169, 255, 0.25),
+
+        inset 0 0 25px
+        rgba(39, 169, 255, 0.12);
+}
+
+.aura-core.listening::after {
+    opacity: 1;
+
+    animation-duration:
+        4s;
+}
+
+
+/* Processing */
+
+.aura-core.processing::after {
+    border-style: solid;
+
+    border-color:
+        rgba(255, 209, 102, 0.18);
+
+    animation-duration:
+        3s;
+}
+
+
+/* Speaking */
+
+.aura-core.speaking::before {
+    border-color:
+        rgba(125, 220, 255, 0.45);
+
+    animation:
+        speakingHalo
+        0.9s
+        ease-in-out
+        infinite;
+}
+
+.aura-core.speaking::after {
+    opacity: 1;
+
+    animation-duration:
+        5s;
+}
+
+
+/* Idle */
+
+.aura-core.idle::before {
+    opacity: 0.45;
+}
+
+.aura-core.idle::after {
+    opacity: 0.3;
+}
+
+
+/* =========================================================
+   ENERGY ANIMATIONS
+   ========================================================= */
+
+@keyframes energyHalo {
+
+    0%,
+    100% {
+        transform:
+            scale(0.96);
+
+        opacity:
+            0.45;
+    }
+
+    50% {
+        transform:
+            scale(1.04);
+
+        opacity:
+            0.9;
+    }
+}
+
+
+@keyframes speakingHalo {
+
+    0%,
+    100% {
+        transform:
+            scale(0.95);
+
+        opacity:
+            0.45;
+    }
+
+    50% {
+        transform:
+            scale(1.12);
+
+        opacity:
+            1;
+    }
+}
+
+
+@keyframes energyRotate {
+
+    from {
+        transform:
+            rotate(0deg);
+    }
+
+    to {
+        transform:
+            rotate(360deg);
+    }
+}
+/* =========================================================
+   STEP 8 — AURA SPEAKING PARTICLES
+   ========================================================= */
+
+.aura-core.speaking {
+    background: transparent;
+    border-color: transparent;
+    box-shadow: none;
+    animation: none;
+}
+
+.aura-core.speaking .core-letter {
+    opacity: 0;
+    transform: scale(0.25);
+}
+
+.aura-core.speaking .core-pulse {
+    opacity: 0;
+}
+
+.aura-core.speaking::before,
+.aura-core.speaking::after {
+    display: none;
+}
+
+
+/* =========================================================
+   AURA 3D SPEAKING SPHERE
+   ========================================================= */
+
+.aura-core.speaking {
+    transform: none;
+}
+
+/* The 3D particle space */
+
+.aura-particles {
+    position: absolute;
+
+    width: 1px;
+    height: 1px;
+
+    top: 50%;
+    left: 50%;
+
+    transform-style: preserve-3d;
+
+    perspective: 700px;
+
+    pointer-events: none;
+}
+
+/* Individual 3D particles */
+
+.aura-particle {
+    position: absolute;
+
+    top: 0;
+    left: 0;
+
+    width: var(--size);
+    height: var(--size);
+
+    margin:
+        calc(var(--size) / -2);
+
+    border-radius: 50%;
+
+    background:
+        radial-gradient(
+            circle at 30% 25%,
+            #ffffff 0%,
+            #b9efff 20%,
+            #55c7ff 45%,
+            #168eff 72%,
+            #1264ff 100%
+        );
+
+    box-shadow:
+        0 0 7px
+        rgba(125, 220, 255, 0.95),
+
+        0 0 18px
+        rgba(39, 169, 255, 0.55);
+
+    transform:
+        translate3d(
+            var(--x),
+            var(--y),
+            var(--z)
+        );
+
+    opacity:
+        var(--opacity);
+}
+
+/* Depth illusion */
+
+.aura-particle.near {
+    filter:
+        brightness(1.25);
+}
+
+.aura-particle.far {
+    filter:
+        brightness(0.65);
+}
+
+/* =========================================================
+   3D SPHERE ROTATION
+   ========================================================= */
+
+@keyframes auraSphereRotate {
+
+    0% {
+        transform:
+            rotateX(0deg)
+            rotateY(0deg);
+    }
+
+    25% {
+        transform:
+            rotateX(90deg)
+            rotateY(90deg);
+    }
+
+    50% {
+        transform:
+            rotateX(180deg)
+            rotateY(180deg);
+    }
+
+    75% {
+        transform:
+            rotateX(270deg)
+            rotateY(270deg);
+    }
+
+    100% {
+        transform:
+            rotateX(360deg)
+            rotateY(360deg);
+    }
+}
+
+/* Small natural movement */
+
+@keyframes particleFloat {
+
+    from {
+        filter:
+            brightness(0.8);
+    }
+
+    to {
+        filter:
+            brightness(1.2);
+    }
+}
+
+/* =========================================================
+   SPEAKING → NORMAL RETURN
+   ========================================================= */
+
+.aura-particles.returning {
+    animation:
+        sphereReturn
+        0.65s
+        ease-in
+        forwards;
+}
+
+.aura-particles.returning
+.aura-particle {
+    animation:
+        particleCollapse
+        0.65s
+        ease-in
+        forwards;
+}
+
+@keyframes sphereReturn {
+
+    to {
+        transform:
+            rotateX(360deg)
+            rotateY(360deg)
+            scale(0.05);
+
+        opacity: 0;
+    }
+}
+
+@keyframes particleCollapse {
+
+    to {
+        transform:
+            translate3d(
+                0,
+                0,
+                0
+            );
+
+        opacity: 0;
+    }
+}
+/* =========================================================
+   AURA — FINAL LOGO + 3D PROCESSING
+   ONLY REQUIRED CHANGES
+   ========================================================= */
+
+
+/* ---------------------------------------------------------
+   1. CLEANER AURA LOGO
+   --------------------------------------------------------- */
+
+.aura-core:not(.processing):not(.speaking) {
+    background:
+        radial-gradient(
+            circle at 34% 27%,
+            #d9f7ff 0%,
+            #72d8ff 10%,
+            #27a9ff 28%,
+            #0d67d8 52%,
+            #063477 74%,
+            #020c25 100%
+        );
+
+    border:
+        1px solid
+        rgba(115, 215, 255, 0.58);
+
+    box-shadow:
+        0 0 24px
+        rgba(39, 169, 255, 0.32),
+
+        0 0 55px
+        rgba(18, 100, 255, 0.16),
+
+        inset 0 0 28px
+        rgba(255, 255, 255, 0.08);
+}
+
+
+/* Cleaner A */
+
+.aura-core:not(.processing):not(.speaking)
+.core-letter {
+    color:
+        #eafaff;
+
+    text-shadow:
+        0 0 8px
+        rgba(255, 255, 255, 0.7),
+
+        0 0 22px
+        rgba(85, 199, 255, 0.45);
+}
+
+
+/* ---------------------------------------------------------
+   2. PROCESSING GLOW
+   --------------------------------------------------------- */
+
+.aura-core.processing {
+    box-shadow:
+        0 0 45px
+        rgba(39, 169, 255, 0.58),
+
+        0 0 90px
+        rgba(18, 100, 255, 0.24),
+
+        inset 0 0 30px
+        rgba(255, 255, 255, 0.10);
+}
+
+
+/* Make processing blue like speaking */
+
+.aura-core.processing .core-pulse {
+    border-color:
+        rgba(125, 220, 255, 0.5);
+}
+
+
+/* ---------------------------------------------------------
+   3. IDLE / READY = NO ROTATION
+   --------------------------------------------------------- */
+
+.aura-core.idle {
+    animation:
+        coreFloat
+        4.5s
+        ease-in-out
+        infinite;
+
+    transform:
+        translateY(0);
+}
+
+
+/* ---------------------------------------------------------
+   4. SPEAKING PARTICLES KEEP THEIR 3D EFFECT
+   --------------------------------------------------------- */
+
+.aura-core.speaking {
+    animation:
+        none;
+
+    transform:
+        none;
+}
+
+
+/* =========================================================
+   AURA — 3D PROCESSING + SPEAKING EFFECT
+   ONLY REQUESTED CHANGES
+   ========================================================= */
+
+/* Normal logo stays untouched */
+
+.aura-core:not(.processing):not(.speaking) {
+    transform: none;
+}
+
+/* =========================================================
+   PROCESSING / SPEAKING
+   Hide the normal logo completely
+   ========================================================= */
+
+.aura-core.processing .core-letter,
+.aura-core.processing .core-pulse,
+.aura-core.speaking .core-letter,
+.aura-core.speaking .core-pulse {
+    opacity: 0;
+}
+
+/* Hide the core itself while particles are active */
+
+.aura-core.processing,
+.aura-core.speaking {
+    background: transparent;
+    border-color: transparent;
+    box-shadow: none;
+}
+
+/* =========================================================
+   3D PARTICLE DEPTH
+   ========================================================= */
+
+.aura-particles {
+    transform-style: preserve-3d;
+    perspective: 800px;
+}
+
+/* Front particles = brighter */
+
+.aura-particle.near {
+    filter:
+        brightness(1.5);
+
+    box-shadow:
+        0 0 10px
+        rgba(125, 225, 255, 1),
+
+        0 0 28px
+        rgba(39, 169, 255, 0.8);
+}
+
+/* Back particles = darker */
+
+.aura-particle.far {
+    filter:
+        brightness(0.45);
+
+    opacity:
+        0.45;
+}
+
+/* 3D rotation */
+
+@keyframes aura3DSphere {
+
+    0% {
+        transform:
+            rotateX(0deg)
+            rotateY(0deg);
+    }
+
+    25% {
+        transform:
+            rotateX(90deg)
+            rotateY(90deg);
+    }
+
+    50% {
+        transform:
+            rotateX(180deg)
+            rotateY(180deg);
+    }
+
+    75% {
+        transform:
+            rotateX(270deg)
+            rotateY(270deg);
+    }
+
+    100% {
+        transform:
+            rotateX(360deg)
+            rotateY(360deg);
+    }
+}
+
+/* =========================================================
+   BACKGROUND ENERGY
+   ========================================================= */
+
+body::after {
+    content: "";
+
+    position: fixed;
+
+    inset: 0;
+
+    pointer-events: none;
+
+    z-index: -1;
+
+    background:
+        radial-gradient(
+            circle at 50% 42%,
+            rgba(39, 169, 255, 0.12),
+            transparent 35%
+        );
+
+    opacity: 0;
+
+    transition:
+        opacity 0.4s ease;
+}
+
+/* Processing */
+
+body:has(.aura-core.processing)::after {
+    opacity: 0.8;
+
+    animation:
+        auraBackgroundPulse
+        2.2s
+        ease-in-out
+        infinite;
+}
+
+/* Speaking = stronger */
+
+body:has(.aura-core.speaking)::after {
+    opacity: 1;
+
+    animation:
+        auraBackgroundPulse
+        1.4s
+        ease-in-out
+        infinite;
+}
+
+@keyframes auraBackgroundPulse {
+
+    0%,
+    100% {
+        opacity: 0.35;
+        transform: scale(0.96);
+    }
+
+    50% {
+        opacity: 0.9;
+        transform: scale(1.06);
+    }
+}
+/* =========================================================
+   AURA — HOLOGRAPHIC CURSOR LIGHT
+   ========================================================= */
+
+.aura-cursor-glow {
+    position: fixed;
+
+    width: 70px;
+    height: 70px;
+
+    border-radius: 50%;
+
+    pointer-events: none;
+
+    z-index: 9999;
+
+    transform:
+        translate(-50%, -50%);
+
+    opacity: 0;
+
+    background:
+        radial-gradient(
+            circle,
+            rgba(150, 245, 255, 0.38) 0%,
+            rgba(60, 210, 255, 0.20) 18%,
+            rgba(20, 150, 255, 0.10) 38%,
+            rgba(0, 100, 255, 0.04) 55%,
+            transparent 72%
+        );
+
+    filter:
+        blur(1px);
+
+    mix-blend-mode:
+        screen;
+
+    transition:
+        opacity 0.18s ease,
+        width 0.18s ease,
+        height 0.18s ease;
+
+    will-change:
+        left,
+        top,
+        opacity,
+        transform;
+}
+
+
+/* Bright holographic center */
+
+.aura-cursor-glow::before {
+
+    content: "";
+
+    position: absolute;
+
+    left: 50%;
+    top: 50%;
+
+    width: 9px;
+    height: 9px;
+
+    border-radius: 50%;
+
+    transform:
+        translate(-50%, -50%);
+
+    background:
+        rgba(210, 252, 255, 0.98);
+
+    box-shadow:
+        0 0 5px
+        rgba(210, 252, 255, 1),
+
+        0 0 12px
+        rgba(70, 225, 255, 0.95),
+
+        0 0 25px
+        rgba(30, 170, 255, 0.75);
+}
+
+
+/* Moving holographic ring */
+
+.aura-cursor-glow::after {
+
+    content: "";
+
+    position: absolute;
+
+    left: 50%;
+    top: 50%;
+
+    width: 28px;
+    height: 28px;
+
+    border-radius: 50%;
+
+    transform:
+        translate(-50%, -50%);
+
+    border:
+        1px solid
+        rgba(90, 225, 255, 0.55);
+
+    box-shadow:
+        0 0 12px
+        rgba(45, 205, 255, 0.45);
+
+    animation:
+        auraCursorRing
+        1.8s
+        ease-in-out
+        infinite;
+}
+
+
+/* Cursor breathing */
+
+.aura-cursor-glow.visible {
+
+    opacity: 1;
+
+    animation:
+        auraCursorGlow
+        1.8s
+        ease-in-out
+        infinite;
+}
+
+
+/* Glow pulse */
+
+@keyframes auraCursorGlow {
+
+    0%,
+    100% {
+
+        width: 58px;
+        height: 58px;
+
+        filter:
+            blur(1px);
+    }
+
+    50% {
+
+        width: 78px;
+        height: 78px;
+
+        filter:
+            blur(2px);
+    }
+}
+
+
+/* Ring pulse */
+
+@keyframes auraCursorRing {
+
+    0% {
+
+        width: 18px;
+        height: 18px;
+
+        opacity: 0.9;
+    }
+
+    50% {
+
+        width: 34px;
+        height: 34px;
+
+        opacity: 0.35;
+    }
+
+    100% {
+
+        width: 18px;
+        height: 18px;
+
+        opacity: 0.9;
+    }
+}
+/* =========================================================
+   STEP 9 — UI POLISH
+   ========================================================= */
+
+/* Smooth application entrance */
+
+.aura-app {
+    animation:
+        auraPageIn
+        0.7s
+        ease-out
+        both;
+}
+
+@keyframes auraPageIn {
+
+    from {
+        opacity: 0;
+        transform:
+            translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform:
+            translateY(0);
+    }
+}
+
+
+/* Existing panels */
+
+.conversation-panel,
+.controls,
+.mode-info {
+    transition:
+        transform 0.25s ease,
+        border-color 0.25s ease,
+        box-shadow 0.25s ease;
+}
+
+
+/* Conversation panel subtle depth */
+
+.conversation-panel:hover {
+    border-color:
+        rgba(39, 169, 255, 0.18);
+
+    box-shadow:
+        0 12px 45px
+        rgba(0, 0, 0, 0.16);
+}
+
+
+/* Existing message blocks */
+
+.message-block {
+    transition:
+        transform 0.22s ease,
+        border-color 0.22s ease,
+        background 0.22s ease;
+}
+
+.message-block:hover {
+    transform:
+        translateY(-1px);
+}
+
+
+/* Existing mode indicators */
+
+.mode-item {
+    transition:
+        opacity 0.2s ease,
+        transform 0.2s ease;
+}
+
+.mode-item:hover {
+    opacity: 1;
+
+    transform:
+        translateY(-1px);
+}
+
+
+/* Better touch feedback */
+
+.control-button:active {
+    transform:
+        scale(0.975);
+}
+
+
+/* Keep transitions comfortable */
+
+button,
+select,
+input {
+    -webkit-tap-highlight-color:
+        transparent;
+}
+
+
+/* Mobile touch */
+
+@media (hover: none) {
+
+    .control-button:hover::before {
+        left: -120%;
+    }
+
+    .message-block:hover {
+        transform: none;
+    }
+
+    .conversation-panel:hover {
+        border-color: inherit;
+
+        box-shadow: none;
+    }
+}
+/* =========================================================
+   STEP 10 — MOBILE / PHONE POLISH
+   ========================================================= */
+
+@media (max-width: 520px) {
+
+    .aura-app {
+        width: calc(100% - 24px);
+        padding-top: 14px;
+        padding-bottom: 18px;
+    }
+
+    /* Header */
+
+    .top-bar {
+        gap: 10px;
+    }
+
+    .brand h1 {
+        font-size: 18px;
+    }
+
+    .brand span {
+        font-size: 9px;
+    }
+
+    .system-status {
+        font-size: 9px;
+        padding: 6px 9px;
+    }
+
+
+    /* AURA core */
+
+    .core-section {
+        height: 275px;
+        margin-top: 35px;
+    }
+
+    .aura-core {
+        width: 125px;
+        height: 125px;
+    }
+
+    .core-letter {
+        font-size: 52px;
+    }
+
+    .ring-one {
+        width: 175px;
+        height: 175px;
+    }
+
+    .ring-two {
+        width: 215px;
+        height: 215px;
+    }
+
+    .ring-three {
+        width: 255px;
+        height: 255px;
+    }
+
+
+    /* Conversation */
+
+    .conversation-panel {
+        width: 100%;
+    }
+
+    .message-block {
+        padding: 12px 13px;
+    }
+
+    .message-text {
+        font-size: 12px;
+        line-height: 1.55;
+    }
+
+
+    /* Controls */
+
+    .controls {
+        gap: 9px;
+    }
+
+    .control-button {
+        min-height: 58px;
+        padding: 10px;
+    }
+
+    .button-icon {
+        width: 34px;
+        height: 34px;
+    }
+
+    .button-content strong {
+        font-size: 11px;
+    }
+
+    .button-content small {
+        font-size: 9px;
+    }
+
+
+    /* Voice selector */
+
+    .voice-settings {
+        padding: 10px;
+    }
+
+    .voice-settings label {
+        font-size: 9px;
+    }
+
+    .voice-settings select {
+        font-size: 11px;
+    }
+
+
+    /* Mode information */
+
+    .mode-info {
+        gap: 12px;
+        font-size: 9px;
+    }
+
+
+    /* Footer */
+
+    footer {
+        padding-top: 20px;
+        font-size: 9px;
+    }
+
+
+    /* =====================================================
+       3D PARTICLES — MOBILE
+       ===================================================== */
+
+    .aura-particles {
+        transform-origin: center;
+        transform-style: preserve-3d;
+    }
+
+    .aura-particle {
+        box-shadow:
+            0 0 6px
+            rgba(125, 225, 255, 0.85),
+
+            0 0 14px
+            rgba(39, 169, 255, 0.45);
+    }
+}
+
+
+/* =========================================================
+   VERY SMALL PHONES
+   ========================================================= */
+
+@media (max-width: 380px) {
+
+    .aura-app {
+        width: calc(100% - 18px);
+    }
+
+    .core-section {
+        height: 250px;
+    }
+
+    .aura-core {
+        width: 110px;
+        height: 110px;
+    }
+
+    .core-letter {
+        font-size: 46px;
+    }
+
+    .ring-one {
+        width: 155px;
+        height: 155px;
+    }
+
+    .ring-two {
+        width: 190px;
+        height: 190px;
+    }
+
+    .ring-three {
+        width: 225px;
+        height: 225px;
+    }
+
+    .control-button {
+        min-height: 54px;
+    }
+}
+/* =========================================================
+   STEP 11 — SPEAKING ENERGY
+   ========================================================= */
+
+.aura-core.speaking .aura-particles {
+    filter:
+        drop-shadow(
+            0 0 10px
+            rgba(85, 199, 255, 0.45)
+        );
+
+    animation:
+        speakingEnergy
+        1.1s
+        ease-in-out
+        infinite;
+}
+
+
+/* Individual speaking particles */
+
+.aura-core.speaking .aura-particle {
+    animation:
+        particleSpeaking
+        1.1s
+        ease-in-out
+        infinite;
+}
+
+
+@keyframes speakingEnergy {
+
+    0%,
+    100% {
+        filter:
+            drop-shadow(
+                0 0 7px
+                rgba(39, 169, 255, 0.35)
+            );
+    }
+
+    50% {
+        filter:
+            drop-shadow(
+                0 0 20px
+                rgba(85, 199, 255, 0.8)
+            );
+    }
+}
+
+
+@keyframes particleSpeaking {
+
+    0%,
+    100% {
+        opacity:
+            var(--opacity);
+
+        filter:
+            brightness(0.85);
+    }
+
+    50% {
+        opacity:
+            1;
+
+        filter:
+            brightness(1.3);
+    }
+}
+/* =========================================================
+   STEP 12 — AURA AMBIENT BACKGROUND
+   ========================================================= */
+
+body::before {
+    content: "";
+
+    position: fixed;
+    inset: 0;
+
+    pointer-events: none;
+
+    z-index: -2;
+
+    background:
+        radial-gradient(
+            circle at 50% 42%,
+            rgba(39, 169, 255, 0.055),
+            transparent 38%
+        );
+
+    transition:
+        opacity 0.5s ease,
+        transform 0.8s ease;
+}
+
+
+/* Processing */
+
+body:has(.aura-core.processing)::before {
+    opacity: 1;
+
+    animation:
+        ambientProcessing
+        2.8s
+        ease-in-out
+        infinite;
+}
+
+
+/* Speaking */
+
+body:has(.aura-core.speaking)::before {
+    opacity: 1;
+
+    animation:
+        ambientSpeaking
+        1.4s
+        ease-in-out
+        infinite;
+}
+
+
+/* Listening */
+
+body:has(.aura-core.listening)::before {
+    opacity: 0.8;
+
+    animation:
+        ambientListening
+        2s
+        ease-in-out
+        infinite;
+}
+
+
+/* =========================================================
+   AMBIENT ANIMATIONS
+   ========================================================= */
+
+@keyframes ambientProcessing {
+
+    0%,
+    100% {
+        opacity: 0.35;
+
+        transform:
+            scale(0.96);
+    }
+
+    50% {
+        opacity: 0.75;
+
+        transform:
+            scale(1.04);
+    }
+}
+
+
+@keyframes ambientSpeaking {
+
+    0%,
+    100% {
+        opacity: 0.4;
+
+        transform:
+            scale(0.95);
+    }
+
+    50% {
+        opacity: 0.9;
+
+        transform:
+            scale(1.08);
+    }
+}
+
+
+@keyframes ambientListening {
+
+    0%,
+    100% {
+        opacity: 0.3;
+    }
+
+    50% {
+        opacity: 0.65;
+    }
+}
+/* =========================================================
+   STEP 13 — SMOOTH AURA STATE TRANSITIONS
+   ========================================================= */
+
+.aura-core,
+.core-pulse,
+.core-letter,
+.aura-particles {
+    transition:
+        opacity 0.35s ease,
+        filter 0.35s ease,
+        box-shadow 0.35s ease;
+}
+
+
+/* ---------------------------------------------------------
+   LISTENING
+   --------------------------------------------------------- */
+
+.aura-core.listening {
+    filter:
+        brightness(1.08);
+}
+
+.aura-core.listening .core-pulse {
+    opacity: 0.9;
+}
+
+
+/* ---------------------------------------------------------
+   PROCESSING
+   --------------------------------------------------------- */
+
+.aura-core.processing {
+    filter:
+        brightness(1.12);
+}
+
+.aura-core.processing .core-pulse {
+    opacity: 0;
+}
+
+
+/* ---------------------------------------------------------
+   SPEAKING
+   --------------------------------------------------------- */
+
+.aura-core.speaking {
+    filter:
+        brightness(1.15);
+}
+
+.aura-core.speaking .aura-particles {
+    transition:
+        filter 0.4s ease,
+        opacity 0.4s ease;
+}
+
+
+/* ---------------------------------------------------------
+   IDLE / READY
+   --------------------------------------------------------- */
+
+.aura-core.idle {
+    filter:
+        brightness(0.95);
+}
+
+
+/* ---------------------------------------------------------
+   SMOOTH STATE EXIT
+   --------------------------------------------------------- */
+
+.aura-core.processing,
+.aura-core.speaking {
+    transition:
+        filter 0.4s ease,
+        opacity 0.4s ease;
+}
+
+
+/* ---------------------------------------------------------
+   REDUCE MOTION FOR USERS WHO REQUEST IT
+   --------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+
+    .aura-core,
+    .aura-particles,
+    .aura-particle,
+    .core-pulse {
+        animation-duration:
+            0.001ms !important;
+
+        animation-iteration-count:
+            1 !important;
+
+        transition-duration:
+            0.001ms !important;
+    }
+}
+/* =========================================================
+   STEP 14 — AURA ACTIVITY TRAIL
+   ========================================================= */
+
+.aura-core::marker {
+    display: none;
+}
+
+.aura-core.listening::after,
+.aura-core.processing::after,
+.aura-core.speaking::after {
+    box-shadow:
+        0 0 18px rgba(39, 169, 255, 0.18),
+        0 0 38px rgba(39, 169, 255, 0.08);
+
+    transition:
+        box-shadow 0.35s ease;
+}
+
+.aura-core.listening::after {
+    opacity: 0.65;
+}
+
+.aura-core.processing::after {
+    opacity: 0.85;
+}
+
+.aura-core.speaking::after {
+    opacity: 1;
+}
+/* =========================================================
+   STEP 15 — AURA CORE FOCUS
+   ========================================================= */
+
+.aura-core.listening .core-pulse {
+    box-shadow:
+        inset 0 0 18px
+        rgba(85, 199, 255, 0.22),
+
+        0 0 12px
+        rgba(39, 169, 255, 0.12);
+}
+
+.aura-core.processing .core-pulse,
+.aura-core.speaking .core-pulse {
+    box-shadow:
+        inset 0 0 22px
+        rgba(85, 199, 255, 0.28),
+
+        0 0 18px
+        rgba(39, 169, 255, 0.18);
+}
+
+
+/* Active-state focus */
+
+.aura-core.listening,
+.aura-core.processing,
+.aura-core.speaking {
+    filter:
+        contrast(1.04)
+        brightness(1.04);
+}
+
+
+/* Keep the normal logo clean */
+
+.aura-core.idle,
+.aura-core:not(.listening):not(.processing):not(.speaking) {
+    filter: none;
+}
+/* =========================================================
+   STEP 16 — BUTTON MICRO-INTERACTIONS
+   ========================================================= */
+
+.control-button {
+    transition:
+        transform 0.16s ease,
+        box-shadow 0.2s ease,
+        border-color 0.2s ease;
+}
+
+.control-button:active {
+    transform: scale(0.965);
+}
+
+.control-button:focus-visible {
+    outline: none;
+
+    border-color:
+        rgba(85, 199, 255, 0.55);
+
+    box-shadow:
+        0 0 0 2px
+        rgba(39, 169, 255, 0.08),
+
+        0 0 20px
+        rgba(39, 169, 255, 0.14);
+}
+
+
+/* Voice selector */
+
+#voiceSelect:focus-visible,
+#testVoiceButton:focus-visible {
+    outline: none;
+
+    border-color:
+        rgba(85, 199, 255, 0.5);
+
+    box-shadow:
+        0 0 16px
+        rgba(39, 169, 255, 0.12);
+}
+
+
+/* Text command button */
+
+.send-command-button:active {
+    transform: scale(0.96);
+}
+
+.close-command-button:active {
+    transform: scale(0.92);
+}
+
+
+/* Disable hover movement on touch devices */
+
+@media (hover: none) {
+
+    .control-button:hover {
+        transform: none;
+    }
+
+    .send-command-button:hover {
+        transform: none;
+    }
+}
+/* =========================================================
+   STEP 17 — COMMAND FEEDBACK
+   ========================================================= */
+
+.message-block.command-received {
+    animation:
+        commandReceived
+        0.45s
+        ease-out;
+}
+
+@keyframes commandReceived {
+
+    0% {
+        transform: scale(1);
+        box-shadow: none;
+    }
+
+    40% {
+        transform: scale(1.012);
+
+        box-shadow:
+            0 0 22px
+            rgba(39, 169, 255, 0.16);
+    }
+
+    100% {
+        transform: scale(1);
+        box-shadow: none;
+    }
+}
+/* =========================================================
+   STEP 18 — PROCESSING FEEDBACK
+   ========================================================= */
+
+.aura-message.processing-feedback {
+    border-color:
+        rgba(39, 169, 255, 0.28);
+
+    box-shadow:
+        0 0 24px
+        rgba(39, 169, 255, 0.10);
+
+    animation:
+        processingFeedback
+        1.2s
+        ease-in-out
+        infinite;
+}
+
+.aura-message.processing-feedback .message-text {
+    opacity: 0.72;
+}
+
+@keyframes processingFeedback {
+
+    0%,
+    100% {
+        box-shadow:
+            0 0 12px
+            rgba(39, 169, 255, 0.06);
+    }
+
+    50% {
+        box-shadow:
+            0 0 28px
+            rgba(39, 169, 255, 0.18);
+    }
+}
+/* =========================================================
+   STEP 19 — AURA RESPONSE REVEAL
+   ========================================================= */
+
+.aura-message .message-text.response-reveal {
+    animation:
+        responseReveal
+        0.35s
+        ease-out;
+}
+
+@keyframes responseReveal {
+
+    from {
+        opacity: 0;
+        transform:
+            translateY(4px);
+        filter:
+            blur(2px);
+    }
+
+    to {
+        opacity: 1;
+        transform:
+            translateY(0);
+        filter:
+            blur(0);
+    }
+}
+/* =========================================================
+   STEP 20 — AURA ERROR FEEDBACK
+   ========================================================= */
+
+.aura-message.error-state {
+    border-color:
+        rgba(255, 100, 120, 0.28);
+
+    box-shadow:
+        0 0 22px
+        rgba(255, 80, 100, 0.08);
+
+    animation:
+        auraError
+        0.45s
+        ease-out;
+}
+
+.aura-message.error-state .message-title {
+    color:
+        rgba(255, 150, 165, 0.9);
+}
+
+@keyframes auraError {
+
+    0% {
+        transform:
+            translateX(0);
+    }
+
+    25% {
+        transform:
+            translateX(-3px);
+    }
+
+    50% {
+        transform:
+            translateX(3px);
+    }
+
+    75% {
+        transform:
+            translateX(-2px);
+    }
+
+    100% {
+        transform:
+            translateX(0);
+    }
+}
+/* =========================================================
+   STEP 21 — IDLE AURA BREATHING
+   ========================================================= */
+
+.aura-core.idle {
+    animation:
+        auraIdleBreathing
+        3.8s
+        ease-in-out
+        infinite;
+}
+
+@keyframes auraIdleBreathing {
+
+    0%,
+    100% {
+        transform:
+            translateY(0)
+            scale(1);
+
+        filter:
+            brightness(0.96);
+    }
+
+    50% {
+        transform:
+            translateY(-3px)
+            scale(1.012);
+
+        filter:
+            brightness(1.04);
+    }
+}   
+/* =========================================================
+   STEP 22 — STATUS TRANSITION
+   ========================================================= */
+
+.system-status {
+    transition:
+        color 0.3s ease,
+        background 0.3s ease,
+        border-color 0.3s ease,
+        box-shadow 0.3s ease,
+        transform 0.25s ease;
+}
+
+.system-status.listening,
+.system-status.processing,
+.system-status.speaking {
+    transform: translateY(-1px);
+}
+
+.system-status.processing::before {
+    box-shadow:
+        0 0 8px currentColor,
+        0 0 16px currentColor;
+}
+
+.system-status.speaking::before {
+    box-shadow:
+        0 0 10px currentColor,
+        0 0 20px currentColor;
+}
+/* =========================================================
+   STEP 23 — ACTIVE CONVERSATION MESSAGE
+   ========================================================= */
+
+.message-block {
+    transition:
+        opacity 0.25s ease,
+        transform 0.25s ease,
+        border-color 0.25s ease,
+        box-shadow 0.25s ease;
+}
+
+.message-block:not(.active) {
+    opacity: 0.9;
+}
+
+.message-block.active {
+    opacity: 1;
+
+    border-color:
+        rgba(85, 199, 255, 0.32);
+
+    box-shadow:
+        0 0 22px
+        rgba(39, 169, 255, 0.08);
+}
+
+.user-message.active {
+    transform:
+        translateX(2px);
+}
+
+.aura-message.active {
+    transform:
+        translateX(-2px);
+}
+/* =========================================================
+   STEP 24 — VISUAL STABILITY
+   ========================================================= */
+
+/* Keep animations smooth without affecting layout */
+
+.aura-core,
+.aura-particles,
+.aura-particle,
+.core-pulse,
+.core-letter,
+.message-block,
+.system-status {
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+/* Prevent accidental horizontal movement */
+
+.aura-app {
+    overflow-x: hidden;
+}
+
+/* Keep the 3D particle system inside the visual area */
+
+.aura-particles {
+    will-change: transform;
+    transform-style: preserve-3d;
+}
+
+/* Keep particles smooth */
+
+.aura-particle {
+    will-change: transform, opacity, filter;
+}
+
+/* Prevent text from jumping during animations */
+
+.message-text {
+    overflow-wrap: anywhere;
+}
+
+/* Avoid accidental selection while using controls */
+
+.control-button,
+.system-status,
+.core-label {
+    user-select: none;
+    -webkit-user-select: none;
+}
+/* =========================================================
+   STEP 25 — PERFORMANCE POLISH
+   ========================================================= */
+
+/* Let the browser optimize the heavy animated elements */
+
+.aura-core {
+    will-change: transform, filter, opacity;
+}
+
+.aura-core::before,
+.aura-core::after {
+    will-change: transform, opacity;
+}
+
+.core-pulse {
+    will-change: transform, opacity;
+}
+
+.aura-particles {
+    will-change: transform, opacity;
+}
+
+.aura-particle {
+    will-change: transform, opacity, filter;
+}
+
+
+/* Don't animate hidden particles */
+
+.aura-particles.returning {
+    pointer-events: none;
+}
+
+
+/* Keep the application from creating horizontal overflow */
+
+html,
+body {
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+
+/* GPU-friendly rendering for the 3D system */
+
+.aura-particles,
+.aura-particle {
+    transform-style: preserve-3d;
+    backface-visibility: hidden;
+}
+
+
+/* Respect users who prefer reduced motion */
+
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+/* =========================================================
+   FINAL — AURA EARTH GLOBE
+   ========================================================= */
+
+.aura-core:not(.processing):not(.speaking) .core-letter {
+    width: 76px;
+    height: 76px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 0;
+}
+
+.aura-globe {
+    position: relative;
+
+    width: 62px;
+    height: 62px;
+
+    display: block;
+
+    border-radius: 50%;
+
+    overflow: hidden;
+
+    background:
+        radial-gradient(
+            circle at 32% 27%,
+            #dffaff 0%,
+            #61d4ff 8%,
+            #168eff 35%,
+            #0757c9 68%,
+            #031b55 100%
+        );
+
+    border:
+        1px solid
+        rgba(170, 235, 255, 0.85);
+
+    box-shadow:
+        inset -10px -8px 18px
+            rgba(0, 15, 70, 0.55),
+
+        inset 8px 7px 15px
+            rgba(255, 255, 255, 0.30),
+
+        0 0 14px
+            rgba(85, 199, 255, 0.65),
+
+        0 0 32px
+            rgba(39, 169, 255, 0.28);
+}
+
+
+/* Earth-like land masses */
+
+.aura-globe::before {
+    content: "";
+
+    position: absolute;
+
+    width: 30px;
+    height: 21px;
+
+    left: 8px;
+    top: 15px;
+
+    background:
+        #39d98a;
+
+    border-radius:
+        48% 35% 55% 38%;
+
+    transform:
+        rotate(-18deg);
+
+    box-shadow:
+        18px 9px 0 -5px #27b978,
+        7px 19px 0 -7px #45dc92;
+}
+
+
+/* Second continent + atmosphere highlight */
+
+.aura-globe::after {
+    content: "";
+
+    position: absolute;
+
+    width: 20px;
+    height: 15px;
+
+    right: 7px;
+    bottom: 12px;
+
+    background:
+        #31c982;
+
+    border-radius:
+        42% 58% 35% 60%;
+
+    transform:
+        rotate(24deg);
+
+    box-shadow:
+        0 0 8px
+        rgba(80, 230, 170, 0.35);
+}
+
+
+/* Small atmospheric highlight */
+
+.aura-core:not(.processing):not(.speaking)
+.aura-globe {
+    animation:
+        globeAtmosphere
+        4s
+        ease-in-out
+        infinite;
+}
+
+@keyframes globeAtmosphere {
+
+    0%,
+    100% {
+        box-shadow:
+            inset -10px -8px 18px
+                rgba(0, 15, 70, 0.55),
+
+            inset 8px 7px 15px
+                rgba(255, 255, 255, 0.30),
+
+            0 0 14px
+                rgba(85, 199, 255, 0.65),
+
+            0 0 32px
+                rgba(39, 169, 255, 0.28);
+    }
+
+    50% {
+        box-shadow:
+            inset -10px -8px 18px
+                rgba(0, 15, 70, 0.55),
+
+            inset 8px 7px 15px
+                rgba(255, 255, 255, 0.38),
+
+            0 0 20px
+                rgba(85, 199, 255, 0.80),
+
+            0 0 42px
+                rgba(39, 169, 255, 0.34);
+    }
+}
+/* =========================================================
+   AURA FUTURISTIC GLOBE
+   ========================================================= */
+
+.aura-core:not(.processing):not(.speaking)
+.core-letter {
+
+    width: 190px;
+    height:190px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 0;
+}
+
+
+.aura-globe {
+
+    width: 190px;
+    height: 190px;
+
+    object-fit: contain;
+
+    display: block;
+
+    pointer-events: none;
+
+    user-select: none;
+
+    mix-blend-mode: screen;
+
+    filter:
+        drop-shadow(
+            0 0 8px
+            rgba(85, 199, 255, 0.75)
+        )
+        drop-shadow(
+            0 0 22px
+            rgba(39, 169, 255, 0.45)
+        );
+
+    transform-style: preserve-3d;
+
+    animation:
+        auraGlobeRotate
+        18s
+        linear
+        infinite;
+}
+
+
+/* =========================================================
+   SLOW 3D GLOBE ROTATION
+   ========================================================= */
+
+@keyframes auraGlobeRotate {
+
+    from {
+        transform:
+            perspective(500px)
+            rotateY(0deg);
+    }
+
+    to {
+        transform:
+            perspective(500px)
+            rotateY(360deg);
+    }
+}
+
+
+/* =========================================================
+   HIDE GLOBE DURING PARTICLE STATES
+   ========================================================= */
+
+.aura-core.processing
+.aura-globe,
+
+.aura-core.speaking
+.aura-globe {
+
+    opacity: 0;
+
+    visibility: hidden;
+}
+/* =========================================================
+   FINAL GLOBE — ONLY THE GLOBE
+   ========================================================= */
+
+/* Remove the old decorative rings */
+
+.core-ring {
+    display: none !important;
+}
+
+
+/* Remove the old AURA circular container appearance */
+
+.aura-core:not(.processing):not(.speaking) {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+
+/* Remove the old AURA letter */
+
+.aura-core:not(.processing):not(.speaking)
+.core-letter {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+
+    width: 110px;
+    height: 110px;
+}
+
+
+/* The globe itself */
+
+.aura-globe {
+    width: 110px;
+    height: 110px;
+
+    object-fit: contain;
+
+    display: block;
+
+    background: transparent;
+
+    border: none;
+
+    box-shadow: none;
+
+    mix-blend-mode: screen;
+
+    pointer-events: none;
+
+    user-select: none;
+
+    filter:
+        drop-shadow(
+            0 0 8px
+            rgba(80, 200, 255, 0.75)
+        )
+        drop-shadow(
+            0 0 20px
+            rgba(20, 120, 255, 0.45)
+        );
+
+    animation:
+        auraGlobeRotate
+        16s
+        linear
+        infinite;
+}
+
+
+/* Slow 3D globe rotation */
+
+@keyframes auraGlobeRotate {
+
+    from {
+        transform:
+            perspective(600px)
+            rotateY(0deg);
+    }
+
+    to {
+        transform:
+            perspective(600px)
+            rotateY(360deg);
+    }
+}
+
+
+/* Hide the globe when particles take over */
+
+.aura-core.processing
+.aura-globe,
+
+.aura-core.speaking
+.aura-globe {
+    opacity: 0;
+    visibility: hidden;
+}
+/* =========================================================
+   FINAL AURA GLOBE — OVERRIDE
+   ========================================================= */
+
+/* Remove all old rings */
+.core-ring {
+    display: none !important;
+}
+
+
+/* Remove the old circular AURA body */
+.aura-core {
+    width: 180px !important;
+    height: 180px !important;
+
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+
+    overflow: visible !important;
+}
+
+
+/* Remove old pulse */
+.aura-core > .core-pulse {
+    display: none !important;
+}
+
+
+/* Globe container */
+.aura-core > .core-letter {
+    width: 180px !important;
+    height: 180px !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    font-size: 0 !important;
+
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+
+    text-shadow: none !important;
+}
+
+
+/* =========================================================
+   GLOBE
+   ========================================================= */
+
+.aura-globe {
+    width: 180px !important;
+    height: 180px !important;
+
+    display: block !important;
+
+    object-fit: contain;
+
+    background: transparent;
+
+    border: none;
+
+    pointer-events: none;
+
+    user-select: none;
+
+    mix-blend-mode: screen;
+
+    filter:
+        drop-shadow(
+            0 0 10px
+            rgba(70, 200, 255, 0.85)
+        )
+        drop-shadow(
+            0 0 28px
+            rgba(30, 130, 255, 0.55)
+        );
+
+    transform-origin: center center;
+
+    animation:
+        auraGlobeSpin
+        14s
+        linear
+        infinite !important;
+}
+
+
+/* =========================================================
+   GLOBE ROTATION
+   ========================================================= */
+
+@keyframes auraGlobeSpin {
+
+    from {
+        transform:
+            rotateY(0deg);
+    }
+
+    to {
+        transform:
+            rotateY(360deg);
+    }
+}
+
+
+/* =========================================================
+   HIDE GLOBE WHEN PARTICLES ARE ACTIVE
+   ========================================================= */
+
+.aura-core.processing > .core-letter,
+.aura-core.speaking > .core-letter {
+
+    opacity: 0 !important;
+
+    visibility: hidden !important;
+}
+
+
+/* Keep globe visible in Ready / Idle */
+.aura-core:not(.processing):not(.speaking)
+> .core-letter {
+
+    opacity: 1 !important;
+
+    visibility: visible !important;
+}
+/* =========================================================
+   AURA — REAL-TIME HOLOGRAM GLOBE
+   ========================================================= */
+
+.aura-core {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.core-pulse,
+.core-ring {
+    display: none !important;
+}
+
+
+/* =========================================================
+   AURA — FINAL HOLOGRAPHIC EARTH
+   READY / IDLE ONLY
+   ========================================================= */
+
+.aura-core {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.core-ring,
+.core-pulse {
+    display: none !important;
+}
+
+/* Globe container */
+
+.aura-core > .core-letter {
+    width: 450px !important;
+    height: 450px !important;
+
+    display: flex !important;
+
+    align-items: center !important;
+    justify-content: center !important;
+
+    background: transparent !important;
+
+    border: none !important;
+    box-shadow: none !important;
+
+    font-size: 0 !important;
+
+    text-shadow: none !important;
+}
+
+/* Canvas */
+
+.aura-globe {
+    width: 430px !important;
+    height: 430px !important;
+
+    display: block !important;
+
+    background: transparent !important;
+
+    border: none !important;
+
+    pointer-events: none;
+    user-select: none;
+
+    animation: none !important;
+
+    filter:
+        drop-shadow(
+            0 0 8px
+            rgba(60,220,255,0.95)
+        )
+        drop-shadow(
+            0 0 25px
+            rgba(20,150,255,0.70)
+        )
+        drop-shadow(
+            0 0 55px
+            rgba(10,100,255,0.30)
+        );
+}
+
+/* Earth hides during particle states */
+
+.aura-core.processing > .core-letter,
+.aura-core.speaking > .core-letter {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+}
+
+/* Earth only in ready / idle */
+
+.aura-core:not(.processing):not(.speaking)
+> .core-letter {
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* Particle system remains visible */
+
+.aura-core.processing,
+.aura-core.speaking {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.aura-core.processing .aura-particles,
+.aura-core.speaking .aura-particles {
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* Mobile */
+
+@media (max-width: 720px) {
+
+    .aura-core > .core-letter {
+        width: 320px !important;
+        height: 320px !important;
+    }
+
+    .aura-globe {
+        width: 310px !important;
+        height: 310px !important;
+    }
+}
+
+.aura-core > .core-letter {
+    width: 190px !important;
+    height: 190px !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+
+    font-size: 0 !important;
+}
+
+.aura-globe {
+    width: 190px;
+    height: 190px;
+
+    display: block;
+
+    background: transparent;
+
+    pointer-events: none;
+
+    filter:
+        drop-shadow(
+            0 0 8px
+            rgba(50, 210, 255, 0.9)
+        )
+        drop-shadow(
+            0 0 25px
+            rgba(20, 130, 255, 0.55)
+        );
+}
+
+/* Hide hologram while particle sphere is active */
+.aura-core.processing .core-letter,
+.aura-core.speaking .core-letter {
+    opacity: 0 !important;
+    visibility: hidden !important;
+}
+
+
+/* =========================================================
+   AURA — FINAL HOLOGRAPHIC EARTH
+   READY / IDLE ONLY
+   ========================================================= */
+
+.aura-core {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.core-ring,
+.core-pulse {
+    display: none !important;
+}
+
+.aura-core > .core-letter {
+    width: 450px !important;
+    height: 450px !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    font-size: 0 !important;
+    text-shadow: none !important;
+}
+
+.aura-globe {
+    width: 430px !important;
+    height: 430px !important;
+
+    display: block !important;
+    background: transparent !important;
+    border: none !important;
+    pointer-events: none;
+    user-select: none;
+    animation: none !important;
+
+    filter:
+        drop-shadow(
+            0 0 8px
+            rgba(60,220,255,0.95)
+        )
+        drop-shadow(
+            0 0 25px
+            rgba(20,150,255,0.70)
+        )
+        drop-shadow(
+            0 0 55px
+            rgba(10,100,255,0.30)
+        );
+}
+
+.aura-core.processing > .core-letter,
+.aura-core.speaking > .core-letter {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+}
+
+.aura-core:not(.processing):not(.speaking)
+> .core-letter {
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+.aura-core.processing,
+.aura-core.speaking {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.aura-core.processing .aura-particles,
+.aura-core.speaking .aura-particles {
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+@media (max-width: 720px) {
+
+    .aura-core > .core-letter {
+        width: 320px !important;
+        height: 320px !important;
+    }
+
+    .aura-globe {
+        width: 310px !important;
+        height: 310px !important;
+    }
+}
+
+/* Ready state */
+.aura-core:not(.processing):not(.speaking)
+.core-letter {
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+/* =========================================================
+   AURA — FINAL HOLOGRAPHIC EARTH
+   ONLY VISUAL CHANGE
+   ========================================================= */
+
+.core-ring {
+    display: none !important;
+}
+
+.aura-core:not(.processing):not(.speaking) {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.aura-core:not(.processing):not(.speaking) .core-letter {
+    width: 210px !important;
+    height: 210px !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+}
+
+.aura-globe {
+    width: 210px !important;
+    height: 210px !important;
+
+    display: block !important;
+
+    background: transparent !important;
+    border: none !important;
+
+    pointer-events: none;
+    user-select: none;
+
+    filter:
+        drop-shadow(0 0 7px rgba(65, 215, 255, 0.95))
+        drop-shadow(0 0 20px rgba(25, 145, 255, 0.65))
+        drop-shadow(0 0 42px rgba(20, 100, 255, 0.28));
+}
+
+/* Completely hide Earth when the particle sphere is active */
+.aura-core.processing .core-letter,
+.aura-core.speaking .core-letter {
+    opacity: 0 !important;
+    visibility: hidden !important;
+}
+/* =========================================================
+   AURA — REFERENCE UI DESIGN
+   VISUAL ONLY
+   NO COMMAND / JS CHANGES
+   ========================================================= */
+
+/* ---------- FULL SCREEN BACKGROUND ---------- */
+
+html,
+body {
+    min-height: 100%;
+    width: 100%;
+}
+
+body {
+    min-height: 100vh;
+    overflow-x: hidden;
+
+    background:
+        radial-gradient(
+            ellipse at 50% 34%,
+            rgba(0, 145, 255, 0.16) 0%,
+            rgba(0, 90, 210, 0.08) 22%,
+            transparent 48%
+        ),
+        radial-gradient(
+            circle at 8% 70%,
+            rgba(0, 100, 255, 0.10),
+            transparent 32%
+        ),
+        radial-gradient(
+            circle at 92% 72%,
+            rgba(0, 170, 255, 0.08),
+            transparent 30%
+        ),
+        linear-gradient(
+            180deg,
+            #01050f 0%,
+            #020a1d 45%,
+            #020b20 100%
+        );
+}
+
+
+/* ---------- FUTURISTIC GRID ---------- */
+
+body::before {
+    opacity: 0.32 !important;
+
+    background-image:
+        linear-gradient(
+            rgba(35, 150, 255, 0.055) 1px,
+            transparent 1px
+        ),
+        linear-gradient(
+            90deg,
+            rgba(35, 150, 255, 0.055) 1px,
+            transparent 1px
+        ) !important;
+
+    background-size:
+        44px 44px !important;
+
+    mask-image:
+        linear-gradient(
+            to bottom,
+            black 15%,
+            rgba(0,0,0,0.8) 65%,
+            transparent 100%
+        ) !important;
+}
+
+
+/* ---------- APP ---------- */
+
+.aura-app {
+    width: min(
+        1420px,
+        calc(100% - 70px)
+    ) !important;
+
+    min-height: 100vh;
+
+    padding:
+        28px
+        0
+        28px !important;
+}
+
+
+/* ---------- HEADER ---------- */
+
+.top-bar {
+    padding-bottom: 18px;
+
+    border-bottom:
+        1px solid
+        rgba(39, 169, 255, 0.20);
+
+    position: relative;
+}
+
+.top-bar::after {
+    content: "";
+
+    position: absolute;
+
+    left: 0;
+    right: 0;
+    bottom: -1px;
+
+    height: 1px;
+
+    background:
+        linear-gradient(
+            90deg,
+            transparent,
+            rgba(39, 169, 255, 0.65),
+            transparent
+        );
+
+    box-shadow:
+        0 0 18px
+        rgba(39, 169, 255, 0.35);
+}
+
+
+/* ---------- HEADER A ORB ---------- */
+
+.brand-orb {
+    width: 58px !important;
+    height: 58px !important;
+
+    font-size: 27px !important;
+
+    box-shadow:
+        0 0 20px
+        rgba(39, 169, 255, 0.65),
+
+        0 0 50px
+        rgba(18, 100, 255, 0.32),
+
+        inset 0 0 20px
+        rgba(255,255,255,0.18) !important;
+}
+
+.brand h1 {
+    font-size: 28px !important;
+    letter-spacing: 7px !important;
+
+    text-shadow:
+        0 0 20px
+        rgba(85, 199, 255, 0.45) !important;
+}
+
+.brand span {
+    font-size: 13px !important;
+    color: #8ca7cf !important;
+}
+
+
+/* ---------- READY STATUS ---------- */
+
+.system-status {
+    padding:
+        10px
+        20px !important;
+
+    min-width: 115px;
+
+    text-align: center;
+
+    border:
+        1px solid
+        rgba(39, 169, 255, 0.42) !important;
+
+    background:
+        rgba(3, 18, 43, 0.72) !important;
+
+    box-shadow:
+        0 0 22px
+        rgba(39, 169, 255, 0.12),
+
+        inset 0 0 15px
+        rgba(39, 169, 255, 0.04) !important;
+}
+
+
+/* =========================================================
+   CENTER GLOBE AREA
+   ========================================================= */
+
+.core-section {
+    width: 100% !important;
+
+    height: 500px !important;
+
+    margin:
+        28px
+        auto
+        10px !important;
+}
+
+
+/* Remove old decorative rings */
+
+.core-ring {
+    display: none !important;
+}
+
+
+/* Remove old circular AURA shell */
+
+.aura-core {
+    width: 450px !important;
+    height: 450px !important;
+
+    background:
+        transparent !important;
+
+    border:
+        none !important;
+
+    box-shadow:
+        none !important;
+
+    overflow:
+        visible !important;
+
+    animation:
+        none !important;
+}
+
+
+/* Remove old pulse */
+
+.core-pulse {
+    display: none !important;
+}
+
+
+/* Globe canvas */
+
+.core-letter {
+    width: 450px !important;
+    height: 450px !important;
+
+    display: flex !important;
+
+    align-items: center;
+    justify-content: center;
+
+    background:
+        transparent !important;
+
+    border:
+        none !important;
+
+    box-shadow:
+        none !important;
+
+    font-size:
+        0 !important;
+}
+
+
+/* Large holographic Earth */
+
+.aura-globe {
+    width: 430px !important;
+    height: 430px !important;
+
+    display: block !important;
+
+    background:
+        transparent !important;
+
+    border:
+        none !important;
+
+    object-fit:
+        contain;
+
+    filter:
+        drop-shadow(
+            0 0 8px
+            rgba(55, 215, 255, 0.95)
+        )
+        drop-shadow(
+            0 0 28px
+            rgba(20, 140, 255, 0.75)
+        )
+        drop-shadow(
+            0 0 65px
+            rgba(10, 90, 255, 0.30)
+        );
+}
+
+
+/* Globe disappears when particle sphere takes over */
+
+.aura-core.processing .core-letter,
+.aura-core.speaking .core-letter {
+    opacity: 0 !important;
+    visibility: hidden !important;
+}
+
+
+/* AURA label */
+
+.core-label {
+    bottom: 2px !important;
+
+    font-size: 15px !important;
+
+    letter-spacing: 8px !important;
+
+    text-shadow:
+        0 0 15px
+        rgba(39, 169, 255, 0.75) !important;
+}
+
+
+/* =========================================================
+   CONVERSATION CARDS
+   ========================================================= */
+
+.conversation-panel {
+    width: 100% !important;
+
+    grid-template-columns:
+        1fr 1fr !important;
+
+    gap: 22px !important;
+
+    margin-top: 8px;
+}
+
+.message-block {
+    min-height: 125px !important;
+
+    padding:
+        24px
+        28px !important;
+
+    border-radius:
+        20px !important;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(8, 28, 65, 0.76),
+            rgba(3, 12, 30, 0.88)
+        ) !important;
+
+    border:
+        1px solid
+        rgba(50, 165, 255, 0.30) !important;
+
+    box-shadow:
+        0 20px 60px
+        rgba(0, 0, 0, 0.42),
+
+        inset 0 0 35px
+        rgba(39, 169, 255, 0.035) !important;
+
+    backdrop-filter:
+        blur(22px);
+}
+
+.message-title {
+    font-size: 12px !important;
+
+    letter-spacing: 4px !important;
+}
+
+.message-text {
+    font-size: 16px !important;
+
+    line-height: 1.65 !important;
+}
+
+
+/* =========================================================
+   CONTROL BUTTONS
+   ========================================================= */
+
+.controls {
+    margin-top: 18px !important;
+
+    gap: 22px !important;
+}
+
+.control-button {
+    min-height: 96px !important;
+
+    padding:
+        20px
+        25px !important;
+
+    border-radius:
+        20px !important;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(10, 34, 72, 0.78),
+            rgba(3, 14, 32, 0.90)
+        ) !important;
+
+    border:
+        1px solid
+        rgba(45, 160, 255, 0.32) !important;
+
+    box-shadow:
+        0 15px 45px
+        rgba(0,0,0,0.28),
+
+        inset 0 0 25px
+        rgba(39,169,255,0.035) !important;
+}
+
+.control-button:hover {
+    border-color:
+        rgba(70, 190, 255, 0.75) !important;
+
+    box-shadow:
+        0 0 30px
+        rgba(39,169,255,0.20),
+
+        inset 0 0 30px
+        rgba(39,169,255,0.06) !important;
+}
+
+
+/* Button icon */
+
+.button-icon {
+    width: 52px !important;
+    height: 52px !important;
+
+    flex-basis: 52px !important;
+
+    border-radius:
+        15px !important;
+
+    background:
+        rgba(25, 155, 255, 0.10) !important;
+
+    border:
+        1px solid
+        rgba(39, 169, 255, 0.25) !important;
+
+    box-shadow:
+        0 0 20px
+        rgba(39, 169, 255, 0.08);
+}
+
+.button-icon svg {
+    width: 26px !important;
+    height: 26px !important;
+}
+
+.button-content strong {
+    font-size: 16px !important;
+}
+
+.button-content small {
+    font-size: 12px !important;
+}
+
+
+/* =========================================================
+   MODE INFORMATION
+   ========================================================= */
+
+.mode-info {
+    margin-top: 18px !important;
+
+    gap: 34px !important;
+
+    padding:
+        10px
+        20px;
+
+    border-radius:
+        999px;
+
+    border:
+        1px solid
+        rgba(39,169,255,0.16);
+
+    background:
+        rgba(3,14,32,0.40);
+
+    box-shadow:
+        inset 0 0 20px
+        rgba(39,169,255,0.025);
+}
+
+.mode-item {
+    font-size: 11px;
+}
+
+.mode-dot {
+    width: 7px !important;
+    height: 7px !important;
+
+    box-shadow:
+        0 0 10px
+        rgba(39,169,255,0.55) !important;
+}
+
+
+/* =========================================================
+   FOOTER
+   ========================================================= */
+
+footer {
+    padding-top:
+        22px !important;
+
+    color:
+        #58739d !important;
+
+    font-size:
+        12px !important;
+
+    letter-spacing:
+        0.5px;
+}
+
+
+/* =========================================================
+   TEXT COMMAND
+   ========================================================= */
+
+.text-command-wrapper {
+    border-radius:
+        20px !important;
+
+    background:
+        rgba(3, 17, 38, 0.90) !important;
+
+    border:
+        1px solid
+        rgba(39,169,255,0.32) !important;
+}
+
+
+/* =========================================================
+   DESKTOP PROPORTIONS
+   ========================================================= */
+
+@media (min-width: 1100px) {
+
+    .core-section {
+        height: 510px !important;
+    }
+
+    .conversation-panel {
+        margin-top: 0;
+    }
+
+}
+
+
+/* =========================================================
+   MOBILE SAFETY
+   ========================================================= */
+
+@media (max-width: 720px) {
+
+    .aura-app {
+        width:
+            calc(100% - 24px) !important;
+    }
+
+    .core-section {
+        height: 340px !important;
+        margin-top: 20px !important;
+    }
+
+    .aura-core {
+        width: 300px !important;
+        height: 300px !important;
+    }
+
+    .core-letter {
+        width: 300px !important;
+        height: 300px !important;
+    }
+
+    .aura-globe {
+        width: 290px !important;
+        height: 290px !important;
+    }
+
+    .conversation-panel {
+        grid-template-columns:
+            1fr !important;
+    }
+
+    .controls {
+        grid-template-columns:
+            1fr !important;
+    }
+
+    .brand h1 {
+        font-size: 21px !important;
+    }
+
+}
+
+
+/* =========================================================
+   AURA — FINAL HOLOGRAPHIC EARTH
+   READY / IDLE ONLY
+   ========================================================= */
+
+.aura-core {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.core-ring,
+.core-pulse {
+    display: none !important;
+}
+
+.aura-core > .core-letter {
+    width: 450px !important;
+    height: 450px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    font-size: 0 !important;
+    text-shadow: none !important;
+}
+
+.aura-globe {
+    width: 430px !important;
+    height: 430px !important;
+    display: block !important;
+    background: transparent !important;
+    border: none !important;
+    pointer-events: none;
+    user-select: none;
+    animation: none !important;
+    filter:
+        drop-shadow(0 0 8px rgba(60,220,255,0.95))
+        drop-shadow(0 0 25px rgba(20,150,255,0.70))
+        drop-shadow(0 0 55px rgba(10,100,255,0.30));
+}
+
+.aura-core.processing > .core-letter,
+.aura-core.speaking > .core-letter {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+}
+
+.aura-core:not(.processing):not(.speaking)
+> .core-letter {
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+.aura-core.processing,
+.aura-core.speaking {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.aura-core.processing .aura-particles,
+.aura-core.speaking .aura-particles {
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+@media (max-width: 720px) {
+
+    .aura-core > .core-letter {
+        width: 320px !important;
+        height: 320px !important;
+    }
+
+    .aura-globe {
+        width: 310px !important;
+        height: 310px !important;
+    }
+}

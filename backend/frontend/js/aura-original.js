@@ -34,19 +34,6 @@ class AuraVoiceController {
         this.wakeMode = false;
 
         this.shouldListenAgain = false;
-        this.waitingForUserChoice = false;
-        this.pendingAppChoice = null;
-
-        this.waitingForMessageInput = false;
-        this.waitingForEmailInput = false;
-        this.emailStep = null;
-        this.emailRecipient = null;
-        this.emailSubject = null;
-        this.emailBody = null;
-        this.pendingMessageService = null;
-        this.pendingMessageRecipient = null;
-
-        this.waitingForEmailInput = false;
 
         this.idleTimer = null;
         this.startTimer = null;
@@ -111,74 +98,188 @@ class AuraVoiceController {
     // =========================================================
     // SPEECH RECOGNITION
     // =========================================================
+
     setupRecognition() {
-    const SpeechRecognition =
-        window.SpeechRecognition ||
-        window.webkitSpeechRecognition;
 
-    if (!SpeechRecognition) {
-        this.updateStatus(
-            "Voice recognition unavailable"
-        );
-        return;
-    }
+        const SpeechRecognition =
+            window.SpeechRecognition ||
+            window.webkitSpeechRecognition;
 
-    this.recognition =
-        new SpeechRecognition();
+        if (!SpeechRecognition) {
 
-    this.recognition.lang = "en-US";
-    this.recognition.continuous = false;
-    this.recognition.interimResults = false;
-    this.recognition.maxAlternatives = 1;
+            console.error(
+                "Speech recognition is not supported."
+            );
 
-    this.recognition.onstart = () => {
-    console.log("AURA MIC: recognition started");
+            this.updateStatus(
+                "Speech recognition unavailable"
+            );
 
-    this.isListening = true;
-    this.updateMicUI(true);
-    this.setCoreState("listening");
-    this.updateStatus("Listening...");
-
-    if (
-        this.continuousMode &&
-        !this.wakeMode
-    ) {
-        this.resetIdleTimer();
-    }
-};
-
-    this.recognition.onresult = async (event) => {
-        const result =
-            event.results[event.results.length - 1];
-
-        if (!result || !result[0]) {
             return;
         }
 
-        const text =
-            result[0].transcript.trim();
+        this.recognition =
+            new SpeechRecognition();
 
-        if (!text) {
-            return;
-        }
+        this.recognition.lang =
+            "en-US";
 
-        console.log("AURA HEARD:", text);
+        this.recognition.continuous =
+            false;
 
-        this.showCommand(text);
+        this.recognition.interimResults =
+            false;
 
-        this.stopListening();
-        this.clearIdleTimer();
+        this.recognition.maxAlternatives =
+            1;
 
-        await this.processCommand(text);
-    };
+        // =====================================================
+        // RESULT
+        // =====================================================
 
-    this.recognition.onend = () => {
+        this.recognition.onresult =
+            async (event) => {
+
+                const result =
+                    event.results[
+                        event.results.length - 1
+                    ];
+
+                if (
+                    !result ||
+                    !result[0]
+                ) {
+                    return;
+                }
+
+                const text =
+                    result[0]
+                        .transcript
+                        .trim();
+
+                if (!text) {
+                    return;
+                }
+
+                console.log(
+                    "AURA HEARD:",
+                    text
+                );
+
+                // =================================================
+                // WAKE MODE
+                // =================================================
+
+                if (this.wakeMode) {
+
+                    const lower =
+                        text
+                            .toLowerCase()
+                            .trim();
+
+                    const wakeWords = [
+                        "aura",
+                        "hey aura",
+                        "hello aura"
+                    ];
+
+                    const isWakeWord =
+                        wakeWords.some(
+                            word =>
+                                lower === word ||
+                                lower.includes(word)
+                        );
+
+                    // ---------------------------------------------
+                    // Ignore normal conversation
+                    // ---------------------------------------------
+
+                    if (!isWakeWord) {
+
+                        console.log(
+                            "AURA WAKE: ignored:",
+                            text
+                        );
+
+                        this.restartWakeListening();
+
+                        return;
+                    }
+
+                    // ---------------------------------------------
+                    // WAKE AURA
+                    // ---------------------------------------------
+
+                    this.wakeMode =
+                        false;
+
+                    this.shouldListenAgain =
+                        true;
+
+                    this.clearIdleTimer();
+
+                    this.showCommand(
+                        text
+                    );
+
+                    this.stopListening();
+
+                    await this.speak(
+                        "Yes, Ashok?"
+                    );
+
+                    if (
+                        this.continuousMode
+                    ) {
+
+                        this.scheduleListening();
+
+                    } else {
+
+                        this.updateStatus(
+                            "Ready"
+                        );
+                    }
+
+                    return;
+                }
+
+                // =================================================
+                // NORMAL COMMAND
+                // =================================================
+
+                this.showCommand(
+                    text
+                );
+
+                this.stopListening();
+
+                this.clearIdleTimer();
+
+                await this.processCommand(
+                    text
+                );
+            };
+
+        // =====================================================
+// RECOGNITION END
+// =====================================================
+
+this.recognition.onend =
+    () => {
+
         console.log(
             "AURA MIC: recognition ended"
         );
 
-        this.isListening = false;
+        this.isListening =
+            false;
+
         this.updateMicUI(false);
+
+        // ---------------------------------------------
+        // Wake mode
+        // ---------------------------------------------
 
         if (
             this.wakeMode &&
@@ -186,9 +287,15 @@ class AuraVoiceController {
             !this.isProcessing &&
             !this.isSpeaking
         ) {
+
             this.restartWakeListening();
+
             return;
         }
+
+        // ---------------------------------------------
+        // Continuous command mode
+        // ---------------------------------------------
 
         if (
             this.shouldListenAgain &&
@@ -197,116 +304,192 @@ class AuraVoiceController {
             !this.isSpeaking &&
             !this.wakeMode
         ) {
+
             this.scheduleListening();
+
             return;
         }
 
-        this.updateStatus("Ready");
-    };
+        // ---------------------------------------------
+        // Normal microphone
+        // ---------------------------------------------
 
-    this.recognition.onerror = (event) => {
-        console.error(
-            "AURA MIC ERROR:",
-            event.error
-        );
-
-        this.isListening = false;
-        this.updateMicUI(false);
-
-        if (event.error === "not-allowed") {
-            this.shouldListenAgain = false;
-            this.updateStatus(
-                "Microphone permission denied"
-            );
-            return;
-        }
-
-        if (event.error === "audio-capture") {
-            this.shouldListenAgain = false;
-            this.updateStatus(
-                "Microphone unavailable"
-            );
-            return;
-        }
-
-        if (
-            event.error === "service-not-allowed"
-        ) {
-            this.shouldListenAgain = false;
-            this.updateStatus(
-                "Microphone service unavailable"
-            );
-            return;
-        }
-
-        if (event.error === "no-speech") {
-            console.log(
-                "AURA MIC: no speech detected"
-            );
-            return;
-        }
-
-        if (event.error === "aborted") {
-            console.log(
-                "AURA MIC: recognition aborted"
-            );
-            return;
-        }
-
-        console.error(
-            "AURA MIC UNKNOWN ERROR:",
-            event.error
+        this.updateStatus(
+            "Ready"
         );
     };
-}
-    
 
+
+// =====================================================
+// SPEECH RECOGNITION ERROR
+// =====================================================
+
+this.recognition.onerror = (event) => {
+
+    console.error(
+        "AURA MIC ERROR:",
+        event.error
+    );
+
+    this.isListening = false;
+
+    this.updateMicUI(false);
+
+    // ---------------------------------------------
+    // Microphone permission denied
+    // ---------------------------------------------
+
+    if (event.error === "not-allowed") {
+
+        this.shouldListenAgain = false;
+
+        this.updateStatus(
+            "Microphone permission denied"
+        );
+
+        return;
+    }
+
+    // ---------------------------------------------
+    // Microphone unavailable
+    // ---------------------------------------------
+
+    if (event.error === "audio-capture") {
+
+        this.shouldListenAgain = false;
+
+        this.updateStatus(
+            "Microphone unavailable"
+        );
+
+        return;
+    }
+
+    // ---------------------------------------------
+    // Speech service unavailable
+    // ---------------------------------------------
+
+    if (event.error === "service-not-allowed") {
+
+        this.shouldListenAgain = false;
+
+        this.updateStatus(
+            "Microphone service unavailable"
+        );
+
+        return;
+    }
+
+    // ---------------------------------------------
+    // No speech
+    // ---------------------------------------------
+
+    if (event.error === "no-speech") {
+
+        console.log(
+            "AURA MIC: no speech detected"
+        );
+
+        return;
+    }
+
+    // ---------------------------------------------
+    // Aborted
+    //
+    // IMPORTANT:
+    // Do NOT disable continuous mode here.
+    // onend() will decide whether to restart.
+    // ---------------------------------------------
+
+    if (event.error === "aborted") {
+
+        console.log(
+            "AURA MIC: recognition aborted"
+        );
+
+        return;
+    }
+
+    // ---------------------------------------------
+    // Other errors
+    // ---------------------------------------------
+
+    console.error(
+        "AURA MIC UNKNOWN ERROR:",
+        event.error
+    );
+};
     // =========================================================
     // BUTTONS
     // =========================================================
 
-    setupButtons() {
-    if (this.micButton) {
-        this.micButton.addEventListener(
-            "click",
-            () => {
-                if (
-                    this.isProcessing ||
-                    this.isSpeaking
-                ) {
-                    return;
+    setupButtons() 
+
+        // =====================================================
+        // NORMAL MICROPHONE
+        // =====================================================
+
+        if (this.micButton) {
+
+            this.micButton.addEventListener(
+                "click",
+                () => {
+
+                    if (
+                        this.isProcessing ||
+                        this.isSpeaking
+                    ) {
+                        return;
+                    }
+
+                    if (this.isListening) {
+
+                        this.shouldListenAgain =
+                            false;
+
+                        this.wakeMode =
+                            false;
+
+                        this.stopListening();
+
+                        this.updateStatus(
+                            "Ready"
+                        );
+
+                        return;
+                    }
+
+                    this.startNormalMode();
                 }
+            );
+        }
 
-                if (this.isListening) {
-                    this.shouldListenAgain = false;
-                    this.wakeMode = false;
+        // =====================================================
+        // CONTINUOUS
+        // =====================================================
 
-                    this.stopListening();
-                    this.updateStatus("Ready");
+        if (
+            this.continuousButton
+        ) {
 
-                    return;
+            this.continuousButton.addEventListener(
+                "click",
+                () => {
+
+                    if (
+                        this.continuousMode
+                    ) {
+
+                        this.stopContinuousMode();
+
+                    } else {
+
+                        this.startContinuousMode();
+                    }
                 }
-
-                this.startNormalMode();
-            }
-        );
+            );
+        }
     }
-
-    if (this.continuousButton) {
-        this.continuousButton.addEventListener(
-            "click",
-            () => {
-                if (this.continuousMode) {
-                    this.stopContinuousMode();
-                } else {
-                    this.startContinuousMode();
-                }
-            }
-        );
-    }
-}
-
-
 
     // =========================================================
     // NORMAL MODE
@@ -401,56 +584,89 @@ class AuraVoiceController {
     // =========================================================
 
     startListening() {
-    if (!this.recognition) {
-        this.updateStatus(
-            "Voice recognition unavailable"
-        );
-        return;
-    }
 
-    if (
-        this.isListening ||
-        this.isProcessing ||
-        this.isSpeaking
-    ) {
-        return;
-    }
+        if (!this.recognition) {
 
-    if (this.startTimer) {
-        clearTimeout(this.startTimer);
-        this.startTimer = null;
-    }
+            this.updateStatus(
+                "Voice recognition unavailable"
+            );
 
-    this.startTimer = setTimeout(() => {
-        this.startTimer = null;
-
-        if (
-            this.isListening ||
-            this.isProcessing ||
-            this.isSpeaking
-        ) {
             return;
         }
 
-        try {
-            console.log(
-                "AURA MIC: starting recognition..."
-            );
-
-            this.recognition.start();
-
-        } catch (error) {
-            console.error(
-                "MIC START ERROR:",
-                error
-            );
-
-            this.isListening = false;
-            this.updateMicUI(false);
-            this.updateStatus("Ready");
+        if (this.isListening) {
+            return;
         }
-    }, 200);
-}
+
+        if (this.isProcessing) {
+            return;
+        }
+
+        if (this.isSpeaking) {
+            return;
+        }
+
+        if (this.startTimer) {
+
+            clearTimeout(
+                this.startTimer
+            );
+
+            this.startTimer =
+                null;
+        }
+
+        this.startTimer =
+            setTimeout(
+                () => {
+
+                    try {
+
+                        this.isListening =
+                            true;
+
+                        this.updateMicUI(
+                            true
+                        );
+
+                        this.setCoreState(
+                            "listening"
+                        );
+
+                        this.updateStatus(
+                            "Listening..."
+                        );
+
+                        this.recognition.start();
+
+                        if (
+                            this.continuousMode &&
+                            !this.wakeMode
+                        ) {
+
+                            this.resetIdleTimer();
+                        }
+
+                    } catch (error) {
+
+                        console.error(
+                            "MIC START ERROR:",
+                            error
+                        );
+
+                        this.isListening =
+                            false;
+
+                        this.updateMicUI(
+                            false
+                        );
+
+                    }
+
+                },
+                200
+            );
+    }
 
     // =========================================================
     // WAKE LISTENING
@@ -685,38 +901,17 @@ class AuraVoiceController {
 
             } else {
 
-    if (
-        this.waitingForUserChoice ||
-        this.waitingForMessageInput ||
-        this.waitingForEmailInput
-    ) {
-        this.shouldListenAgain = true;
+                this.shouldListenAgain =
+                    false;
 
-        this.updateStatus(
-            "Ready — listening for your answer"
-        );
+                this.updateMicUI(
+                    false
+                );
 
-        setTimeout(() => {
-            if (
-                !this.isListening &&
-                !this.isProcessing &&
-                !this.isSpeaking
-            ) {
-                this.startListening();
+                this.updateStatus(
+                    "Ready"
+                );
             }
-        }, 250);
-
-    } else {
-
-      this.shouldListenAgain = false;
-
-      this.updateMicUI(false);
-
-      this.updateStatus(
-          "Ready"
-        );
-    }
-}
         }
     }
 
@@ -724,920 +919,236 @@ class AuraVoiceController {
     // OPEN WEB ACTION IN USER'S BROWSER
     // =====================================================
 
-    getAppChoice(command) {
-        
-    const text = command
-        .toLowerCase()
-        .replace(/[.,!?]/g, "")
-        .replace(/\s+/g, " ")
-        .trim();
-
-    const match = text.match(
-        /^(?:please\s+)?(?:open|launch|start|go to)\s+(whatsapp|instagram|snapchat|spotify|discord|telegram|chrome|gmail)(?:\s+app)?$/
-    );
-
-    if (!match) {
-        return null;
-    }
-
-    return match[1];
-}
-openDesktopApp(app) {
-    const desktopApps = {
-        whatsapp:
-            "whatsapp://",
-        instagram:
-            "instagram://",
-        snapchat:
-            "snapchat://",
-        spotify:
-            "spotify:",
-        discord:
-            "discord://",
-        telegram:
-            "tg://"
-    };
-
-    const protocol =
-        desktopApps[app];
-
-    if (!protocol) {
-        return `I couldn't find a desktop app for ${app}.`;
-    }
-
-    window.location.href =
-        protocol;
-
-    return `Opening ${app} desktop app.`;
-}
     getWebActionUrl(command) {
-    const text = command
-        .toLowerCase()
-        .replace(/[.,!?]/g, "")
-        .replace(/\s+/g, " ")
-        .trim();
 
-    // =========================================================
-    // EXPLICIT WEBSITE REQUEST
-    // Examples:
-    // open whatsapp web
-    // open whatsapp website
-    // open instagram web
-    // launch youtube website
-    // =========================================================
+        const text = command.toLowerCase().trim();
 
-    const explicitWebMatch = text.match(
-        /^(?:please\s+)?(?:open|launch|start|go to|visit)\s+(.+?)\s+(?:website|site|web|web version)$/
-    );
-
-    const knownSites = {
-        youtube: "https://www.youtube.com",
-        google: "https://www.google.com",
-        instagram: "https://www.instagram.com",
-        facebook: "https://www.facebook.com",
-        snapchat: "https://www.snapchat.com",
-        spotify: "https://open.spotify.com",
-        whatsapp: "https://web.whatsapp.com",
-        github: "https://github.com",
-        gmail: "https://mail.google.com",
-        "google drive": "https://drive.google.com",
-        "google docs": "https://docs.google.com",
-        "google maps": "https://maps.google.com",
-        linkedin: "https://www.linkedin.com",
-        reddit: "https://www.reddit.com",
-        discord: "https://discord.com",
-        telegram: "https://web.telegram.org",
-        netflix: "https://www.netflix.com",
-        amazon: "https://www.amazon.com",
-        flipkart: "https://www.flipkart.com"
-    };
-
-    if (explicitWebMatch) {
-        let target = explicitWebMatch[1]
-            .replace(/\bapp\b/g, "")
-            .trim();
-
-        if (knownSites[target]) {
-            return knownSites[target];
-        }
+        // -----------------------------
+        // YOUTUBE
+        // -----------------------------
 
         if (
-            target.startsWith("http://") ||
-            target.startsWith("https://")
+            text === "youtube" ||
+            text === "open youtube" ||
+            text === "launch youtube" ||
+            text === "start youtube"
         ) {
-            return target;
+            return "https://www.youtube.com";
         }
 
-        if (
-            target.includes(".com") ||
-            target.includes(".in") ||
-            target.includes(".org") ||
-            target.includes(".net")
-        ) {
-            return "https://" + target;
-        }
-
-        return (
-            "https://www.google.com/search?q=" +
-            encodeURIComponent(target)
+        // YouTube search
+        let match = text.match(
+            /^search\s+(?:on\s+)?youtube\s+(?:for\s+)?(.+)$/
         );
-    }
 
-    // =========================================================
-    // NORMAL "OPEN" COMMANDS
-    //
-    // Desktop-preferred applications are NOT opened as websites.
-    // They must go to the local Windows agent first.
-    // =========================================================
+        if (match) {
 
-    const normalOpenMatch = text.match(
-        /^(?:please\s+)?(?:open|launch|start|go to|visit)\s+(.+)$/
-    );
+            const query = match[1].trim();
 
-    if (!normalOpenMatch) {
+            if (query) {
+                return (
+                    "https://www.youtube.com/results?search_query=" +
+                    encodeURIComponent(query)
+                );
+            }
+        }
+
+        // -----------------------------
+        // GOOGLE
+        // -----------------------------
+
+        if (
+            text === "google" ||
+            text === "open google" ||
+            text === "launch google" ||
+            text === "start google"
+        ) {
+            return "https://www.google.com";
+        }
+
+        // Google search
+        match = text.match(
+            /^search\s+(?:google\s+)?(?:for\s+)?(.+)$/
+        );
+
+        if (
+            match &&
+            !text.startsWith("search youtube")
+        ) {
+
+            const query = match[1].trim();
+
+            if (query) {
+                return (
+                    "https://www.google.com/search?q=" +
+                    encodeURIComponent(query)
+                );
+            }
+        }
+
+        // -----------------------------
+        // INSTAGRAM
+        // -----------------------------
+
+        if (
+            text === "instagram" ||
+            text === "open instagram" ||
+            text === "launch instagram" ||
+            text === "start instagram"
+        ) {
+            return "https://www.instagram.com";
+        }
+
+        // -----------------------------
+        // FACEBOOK
+        // -----------------------------
+
+        if (
+            text === "facebook" ||
+            text === "open facebook" ||
+            text === "launch facebook" ||
+            text === "start facebook"
+        ) {
+            return "https://www.facebook.com";
+        }
+
+        // -----------------------------
+        // SNAPCHAT
+        // -----------------------------
+
+        if (
+            text === "snapchat" ||
+            text === "open snapchat" ||
+            text === "launch snapchat" ||
+            text === "start snapchat"
+        ) {
+            return "https://www.snapchat.com";
+        }
+
+        // -----------------------------
+        // SPOTIFY
+        // -----------------------------
+
+        if (
+            text === "spotify" ||
+            text === "open spotify" ||
+            text === "launch spotify" ||
+            text === "start spotify"
+        ) {
+            return "https://open.spotify.com";
+        }
+
+        // -----------------------------
+        // WHATSAPP WEB
+        // -----------------------------
+
+        if (
+            text === "whatsapp web" ||
+            text === "open whatsapp web" ||
+            text === "launch whatsapp web"
+        ) {
+            return "https://web.whatsapp.com";
+        }
+
         return null;
     }
-
-    let target = normalOpenMatch[1]
-        .replace(/\bapp\b/g, "")
-        .trim();
-
-    // Remove accidental web words if already handled above.
-    target = target
-        .replace(/\b(?:website|site|web|web version)\b/g, "")
-        .replace(/\s+/g, " ")
-        .trim();
-
-    // These should NOT be converted into websites.
-    // The local Windows agent gets the first chance.
-    const desktopPreferredApps = new Set([
-        "whatsapp",
-        "instagram",
-        "snapchat",
-        "spotify",
-        "discord",
-        "telegram",
-        "chrome",
-        "firefox",
-        "edge",
-        "notepad",
-        "calculator",
-        "paint",
-        "word",
-        "excel",
-        "powerpoint",
-        "vs code",
-        "visual studio code",
-        "steam",
-        "zoom"
-    ]);
-
-    if (desktopPreferredApps.has(target)) {
-        return null;
-    }
-
-    // Normal website commands.
-    if (knownSites[target]) {
-        return knownSites[target];
-    }
-
-    // Direct URL.
-    if (
-        target.startsWith("http://") ||
-        target.startsWith("https://")
-    ) {
-        return target;
-    }
-
-    if (
-        target.includes(".com") ||
-        target.includes(".in") ||
-        target.includes(".org") ||
-        target.includes(".net")
-    ) {
-        return "https://" + target;
-    }
-
-    // Unknown "open X" commands are NOT automatically sent to Google.
-    // Let the local agent / AURA decide first.
-    return null;
-}    
-   getMessageAction(command) {
-    const text = command
-        .toLowerCase()
-        .replace(/[.,!?]/g, "")
-        .replace(/\s+/g, " ")
-        .trim();
-
-    const match = text.match(
-        /^(?:open\s+)?(whatsapp|instagram|snapchat)\s+(?:and\s+)?(?:send\s+(?:a\s+)?message\s+to|message|text)\s+(.+?)\s+(?:saying|that says|with the message)\s+(.+)$/
-    );
-
-    if (!match) {
-        return null;
-    }
-
-    return {
-        service: match[1],
-        recipient: match[2].trim(),
-        message: match[3].trim()
-    };
-}
-parseMessageCommand(command) {
-    const text = command
-        .toLowerCase()
-        .replace(/[!?]/g, "")
-        .replace(/\s+/g, " ")
-        .trim();
-
-    const match = text.match(
-        /(?:open\s+)?whatsapp\s+(?:and\s+)?(?:send\s+(?:a\s+)?message|message|text)\s+to\s+(.+?)\s+(?:saying|that says|with the message)\s+(.+)/
-    );
-
-    if (!match) {
-        return null;
-    }
-
-    return {
-        service: "whatsapp",
-        recipient: match[1].trim(),
-        message: match[2].trim()
-    };
-}   
-    parseEmailCommand(command) {
-    const text = command
-        .replace(/\s+/g, " ")
-        .trim();
-
-    const match = text.match(
-        /^(?:open\s+)?(?:email|gmail)(?:\s+and)?\s+(?:write|compose|send)\s+(?:an?\s+)?email(?:\s+to\s+(.+?))?(?:\s+saying\s+(.+))?$/i
-    );
-
-    if (!match) {
-        return null;
-    }
-
-    return {
-        recipient: match[1]
-            ? match[1].trim()
-            : null,
-
-        body: match[2]
-            ? match[2].trim()
-            : null
-    };
-}
 
     // =========================================================
     // SEND COMMAND
     // =========================================================
 
     async sendCommand(command) {
-    command = command.trim();
-
-    if (!command) {
-        return;
-    }
-
-    console.log("AURA COMMAND:", command);
-    const webActionUrl =
-    this.getWebActionUrl(command);
-
-if (webActionUrl) {
-
-    window.open(
-        webActionUrl,
-        "_blank"
-    );
-
-    return `Opening ${command.replace(/^.*?\b(open|launch|start|go to|visit)\b\s+/i, "").replace(/\s+(website|site|web|web version)$/i, "").trim()} Web.`;
-}
-    
-    const emailOpenCommand =
-    /^(?:open|launch|start|go to)\s+(?:email|gmail)$/i.test(
-        command.trim()
-    );
-
-if (emailOpenCommand) {
-    window.open(
-        "https://mail.google.com",
-        "_blank"
-    );
-
-    return "Opening Gmail.";
-}
-    const emailMatch = command.match(
-    /^(?:open\s+)?(?:send|write|compose)\s+(?:an?\s+)?(?:email|gmail)\s+to\s+([^\s]+)(?:\s+(?:saying|with the message|that says)\s+(.+))?$/i
-);
-
-if (this.waitingForEmailInput) {
-    if (this.emailStep === "subject") {
-        this.emailSubject = command.trim();
-        this.emailStep = "body";
-        return "What should I write in the email?";
-    }
-
-    if (this.emailStep === "body") {
-        this.emailBody = command.trim();
-
-        this.waitingForEmailInput = false;
-
-        const recipient = this.emailRecipient;
-        const subject = this.emailSubject;
-        const body = this.emailBody;
-
-        this.emailStep = null;
-        this.emailRecipient = null;
-        this.emailSubject = null;
-        this.emailBody = null;
-
-        const gmailUrl =
-            "https://mail.google.com/mail/?view=cm&fs=1" +
-            "&to=" + encodeURIComponent(recipient) +
-            "&su=" + encodeURIComponent(subject) +
-            "&body=" + encodeURIComponent(body);
-
-        window.open(gmailUrl, "_blank");
-
-        return "I've prepared the email for you.";
-    }
-}
-
-if (emailMatch) {
-    this.emailRecipient = emailMatch[1];
-
-    if (emailMatch[2]) {
-        this.emailBody = emailMatch[2];
-        this.emailStep = "subject";
-        this.waitingForEmailInput = true;
-
-        return "What should be the subject?";
-    }
-
-    this.emailStep = "body";
-    this.waitingForEmailInput = true;
-
-    return "What should I write in the email?";
-}
-    const socialMessageMatch = command.match(
-    /^(?:open\s+)?(instagram|snapchat)\s+(?:and\s+)?(?:send\s+(?:a\s+)?message|message|text)\s+to\s+(.+?)\s+(?:saying|that says|with the message)\s+(.+)$/i
-);
-
-if (socialMessageMatch) {
-    const service =
-        socialMessageMatch[1].toLowerCase();
-
-    const recipient =
-        socialMessageMatch[2].trim();
-
-    const message =
-        socialMessageMatch[3].trim();
-
-    const urls = {
-        instagram:
-            "https://www.instagram.com/direct/inbox/",
-        snapchat:
-            "https://www.snapchat.com/web"
-    };
-
-    console.log(
-        "AURA SOCIAL MESSAGE:",
-        service,
-        recipient,
-        message
-    );
-
-    const url = urls[service];
-
-    if (url) {
-        window.open(
-            url,
-            "_blank"
-        );
-
-        return `Opening ${service} to message ${recipient}.`;
-    }
-
-    return `I couldn't open ${service}.`;
-}
-   const whatsappCallMatch = command
-    .toLowerCase()
-    .replace(/[.,!?]/g, "")
-    .replace(/\s+/g, " ")
-    .trim()
-    .match(
-        /^(?:call|phone call|start a call|start calling)\s+(\d{10,15})\s*(?:on\s+whatsapp)?$/
-    );
-
-if (whatsappCallMatch) {
-    const phone =
-        whatsappCallMatch[1].replace(/\D/g, "");
-
-    console.log(
-        "AURA WHATSAPP CALL:",
-        phone
-    );
-
-    window.location.href =
-        "whatsapp://call?phone=" +
-        phone;
-
-    return "Opening WhatsApp call.";
-}
-
-const whatsappVideoCallMatch = command
-    .toLowerCase()
-    .replace(/[.,!?]/g, "")
-    .replace(/\s+/g, " ")
-    .trim()
-    .match(
-        /^(?:video call|start a video call)\s+(\d{10,15})\s*(?:on\s+whatsapp)?$/
-    );
-
-if (whatsappVideoCallMatch) {
-    const phone =
-        whatsappVideoCallMatch[1].replace(/\D/g, "");
-
-    console.log(
-        "AURA WHATSAPP VIDEO CALL:",
-        phone
-    );
-
-    window.location.href =
-        "whatsapp://video?phone=" +
-        phone;
-
-    return "Opening WhatsApp video call.";
-}
-
-const whatsappMatch = command.match(
-    /^(?:open\s+)?whatsapp\s+(?:and\s+)?send\s+(?:a\s+)?message\s+to\s+(\+?\d{10,15})\s+(?:saying|that says|with the message)\s+(.+)$/i
-);
-
-if (whatsappMatch) {
-    const phone =
-        whatsappMatch[1].replace(/\D/g, "");
-
-    const message =
-        whatsappMatch[2].trim();
-
-    const whatsappUrl =
-        "https://wa.me/" +
-        phone +
-        "?text=" +
-        encodeURIComponent(message);
-
-    console.log(
-        "AURA WHATSAPP:",
-        phone,
-        message
-    );
-
-    window.open(
-        whatsappUrl,
-        "_blank"
-    );
-
-    return "Opening WhatsApp with your message ready.";
-}
-
-if (
-    this.waitingForMessageInput &&
-    this.pendingMessageService === "whatsapp"
-) {
-    const phone =
-        command.replace(/\D/g, "");
-
-    if (phone.length >= 10) {
-        this.waitingForMessageInput =
-            false;
-
-        const recipient =
-            this.pendingMessageRecipient;
-
-        const message =
-            this.pendingMessageText;
-
-        this.pendingMessageService =
-            null;
-
-        this.pendingMessageRecipient =
-            null;
-
-        this.pendingMessageText =
-            null;
-
-        const url =
-            "https://wa.me/" +
-            phone +
-            "?text=" +
-            encodeURIComponent(message);
-
-        window.open(
-            url,
-            "_blank"
-        );
-
-        return `Opening WhatsApp for ${recipient} with your message ready.`;
-    }
-
-    return "Please tell me the phone number.";
-}
-
-    if (
-        this.waitingForMessageInput &&
-        this.pendingMessageService === "whatsapp"
-    ) {
-        const phone =
-            command.replace(/\D/g, "");
-
-        if (phone.length >= 10) {
-            this.waitingForMessageInput =
-                false;
-
-            const recipient =
-                this.pendingMessageRecipient;
-
-            const message =
-                this.pendingMessageText;
-
-            this.pendingMessageService =
-                null;
-
-            this.pendingMessageRecipient =
-                null;
-
-            this.pendingMessageText =
-                null;
-
-            const url =
-                "https://wa.me/" +
-                phone +
-                "?text=" +
-                encodeURIComponent(message);
+
+        command = command.trim();
+
+        if (!command) {
+            return;
+        }
+
+        console.log("AURA COMMAND:", command);
+
+        // =====================================================
+        // LOCAL WINDOWS AGENT
+        // =====================================================
+
+        try {
+
+            const localResponse = await fetch(
+                "http://127.0.0.1:5050/command",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        session_id: auraSessionId,
+                        username: auraUsername,
+                        command: command
+                    })
+                }
+            );
+
+            const localData =
+                await localResponse.json();
+
+            console.log(
+                "LOCAL AGENT:",
+                localData
+            );
+
+            if (localData.username) {
+                auraUsername = localData.username;
+                localStorage.setItem(
+                    "aura_username",
+                    auraUsername
+                );
+            }
+
+            if (
+                localResponse.ok &&
+                localData.response
+            ) {
+
+                return String(
+                    localData.response
+                );
+            }
+
+        } catch (error) {
+
+            console.log(
+                "Local Agent unavailable:",
+                error
+            );
+
+        }
+
+        // =====================================================
+        // WEB ACTION
+        // =====================================================
+
+        const webActionUrl =
+            this.getWebActionUrl(command);
+
+        if (webActionUrl) {
 
             window.open(
-                url,
+                webActionUrl,
                 "_blank"
             );
 
-            return `Opening WhatsApp for ${recipient} with your message ready.`;
+            return "Opening it.";
+
         }
 
-        return "Please tell me the phone number.";
-    }
+        // =====================================================
+        // CLOUD AURA
+        // =====================================================
 
-    const messageCommand =
-        this.parseMessageCommand(command);
+        const AURA_API =
+            window.AURA_API_URL ||
+            "https://aura-ai-ywzs.onrender.com";
 
-    if (messageCommand) {
-        const recipient =
-            messageCommand.recipient;
-
-        const message =
-            messageCommand.message;
-
-        const phone =
-            recipient.replace(/\D/g, "");
-
-        if (phone.length >= 10) {
-            const url =
-                "https://wa.me/" +
-                phone +
-                "?text=" +
-                encodeURIComponent(message);
-
-            window.open(
-                url,
-                "_blank"
-            );
-
-            return "Opening WhatsApp with your message ready.";
-        }
-
-        this.pendingMessageService =
-            "whatsapp";
-
-        this.pendingMessageRecipient =
-            recipient;
-
-        this.pendingMessageText =
-            message;
-
-        this.waitingForMessageInput =
-            true;
-
-        return `What is ${recipient}'s phone number?`;
-    }
-
-    const text = command
-        .toLowerCase()
-        .replace(/[.,!?]/g, "")
-        .replace(/\s+/g, " ")
-        .trim();
-        if (
-    text === "open email" ||
-    text === "open gmail" ||
-    text === "launch gmail" ||
-    text === "start gmail"
-) {
-    window.open(
-        "https://mail.google.com",
-        "_blank"
-    );
-
-    return "Opening Gmail.";
-}
-
-    // =====================================================
-    // APP / WEB CHOICE
-    // =====================================================
-
-    if (
-        this.waitingForUserChoice &&
-        this.pendingAppChoice
-    ) {
-        const app =
-            this.pendingAppChoice;
-
-        if (
-            text === "desktop" ||
-            text.includes("desktop app")
-        ) {
-            this.waitingForUserChoice = false;
-            this.pendingAppChoice = null;
-
-            return this.openDesktopApp(app);
-        }
-
-        if (
-            text === "web" ||
-            text === "website" ||
-            text.includes("web version")
-        ) {
-            this.waitingForUserChoice = false;
-            this.pendingAppChoice = null;
-
-            const urls = {
-                whatsapp:
-                    "https://web.whatsapp.com",
-                instagram:
-                    "https://www.instagram.com",
-                snapchat:
-                    "https://www.snapchat.com",
-                spotify:
-                    "https://open.spotify.com",
-                discord:
-                    "https://discord.com",
-                telegram:
-                    "https://web.telegram.org",
-                gmail:
-                    "https://mail.google.com"
-            };
-
-            const url = urls[app];
-
-            if (url) {
-                window.open(url, "_blank");
-                return `Opening ${app} Web.`;
-            }
-
-            return `I couldn't find the web version of ${app}.`;
-        }
-
-        return "Please say desktop or web.";
-    }
-
-    // =====================================================
-    // WHATSAPP MESSAGE
-    // =====================================================
-
-    const whatsappMessage =
-        text.match(
-            /(?:open\s+)?whatsapp\s+(?:and\s+)?send\s+(?:a\s+)?message\s+to\s+(\+?\d{10,15})\s+(?:saying|that says|with the message)\s+(.+)/
-        );
-
-    if (whatsappMessage) {
-        const phone =
-            whatsappMessage[1].replace(/\D/g, "");
-
-        const message =
-            whatsappMessage[2].trim();
-
-        const url =
-            "https://wa.me/" +
-            phone +
-            "?text=" +
-            encodeURIComponent(message);
-
-        window.open(url, "_blank");
-
-        return "Opening WhatsApp with your message ready.";
-    }
-
-    // =====================================================
-    // WHATSAPP MESSAGE - "MESSAGE ... TO ..."
-    // =====================================================
-
-    const whatsappMessage2 =
-        text.match(
-            /(?:open\s+)?whatsapp\s+(?:and\s+)?(?:message|text)\s+(\+?\d{10,15})\s+(?:saying|that says|with the message)\s+(.+)/
-        );
-
-    if (whatsappMessage2) {
-        const phone =
-            whatsappMessage2[1].replace(/\D/g, "");
-
-        const message =
-            whatsappMessage2[2].trim();
-
-        const url =
-            "https://wa.me/" +
-            phone +
-            "?text=" +
-            encodeURIComponent(message);
-
-        window.open(url, "_blank");
-
-        return "Opening WhatsApp with your message ready.";
-    }
-
- // =====================================================
-// LOCAL WINDOWS AGENT FIRST
-// =====================================================
-//
-// Desktop/device commands must get the first chance.
-// Examples:
-// open WhatsApp
-// open Calculator
-// open Downloads
-// lock my screen
-//
-// If the local agent handles the command, return immediately.
-// Only commands not handled locally should continue to
-// the browser/web fallback.
-//
-
-try {
-    const controller =
-        new AbortController();
-
-    const timeout =
-        setTimeout(
-            () => controller.abort(),
-            2000
-        );
-
-    const localResponse =
-        await fetch(
-            "http://127.0.0.1:5050/command",
-            {
-                method: "POST",
-
-                headers: {
-                    "Content-Type":
-                        "application/json"
-                },
-
-                body: JSON.stringify({
-                    session_id:
-                        auraSessionId,
-
-                    username:
-                        auraUsername,
-
-                    command:
-                        command
-                }),
-
-                signal:
-                    controller.signal
-            }
-        );
-
-    clearTimeout(timeout);
-
-    const localData =
-        await localResponse.json();
-
-    console.log(
-        "LOCAL AGENT:",
-        localData
-    );
-
-    if (localData.username) {
-        auraUsername =
-            localData.username;
-
-        localStorage.setItem(
-            "aura_username",
-            auraUsername
-        );
-    }
-
-    if (
-        localResponse.ok &&
-        localData.response
-    ) {
-        return String(
-            localData.response
-        );
-    }
-
-} catch (error) {
-
-    console.log(
-        "Local Agent unavailable:",
-        error
-    );
-}
-
-
- // =====================================================
-// CLOUD AURA
-// =====================================================
-
-const AURA_API =
-    window.AURA_API_URL ||
-    "https://aura-ai-backend-cl7h.onrender.com";
-
-try {
-
-    const response =
-        await fetch(
-            `${AURA_API}/command`,
-            {
-                method: "POST",
-
-                headers: {
-                    "Content-Type":
-                        "application/json"
-                },
-
-                body: JSON.stringify({
-                    session_id:
-                        auraSessionId,
-
-                    username:
-                        auraUsername,
-
-                    command:
-                        command
-                })
-            }
-        );
-
-    const data =
-        await response.json();
-
-    console.log(
-        "CLOUD AURA:",
-        data
-    );
-
-    if (data.username) {
-
-        auraUsername =
-            data.username;
-
-        localStorage.setItem(
-            "aura_username",
-            auraUsername
-        );
-    }
-
-    if (!response.ok) {
-
-        throw new Error(
-            data.error ||
-            data.response ||
-            `Server error ${response.status}`
-        );
-    }
-
-    return String(
-        data.response ||
-        "I couldn't process that."
-    );
-
-} catch (error) {
-
-    console.error(
-        "CLOUD AURA ERROR:",
-        error
-    );
-
-    return "Sorry, I couldn't connect to AURA.";
-}
-
-    // =======================================
-        window.AURA_API_URL ||
-        "https://aura-ai-backend-cl7h.onrender.com";
-    window.AURA_API_URL ||
-    "https://aura-ai-backend-cl7h.onrender.com";
-
-
-    try {
         const response =
             await fetch(
                 `${AURA_API}/command`,
@@ -1650,14 +1161,9 @@ try {
                     },
 
                     body: JSON.stringify({
-                        session_id:
-                            auraSessionId,
-
-                        username:
-                            auraUsername,
-
-                        command:
-                            command
+                        session_id: auraSessionId,
+                        username: auraUsername,
+                        command: command
                     })
                 }
             );
@@ -1671,9 +1177,7 @@ try {
         );
 
         if (data.username) {
-            auraUsername =
-                data.username;
-
+            auraUsername = data.username;
             localStorage.setItem(
                 "aura_username",
                 auraUsername
@@ -1681,27 +1185,17 @@ try {
         }
 
         if (!response.ok) {
+
             throw new Error(
                 data.error ||
                 data.response ||
                 `Server error ${response.status}`
             );
+
         }
 
-        return String(
-            data.response ||
-            "I couldn't process that."
-        );
-
-    } catch (error) {
-        console.error(
-            "CLOUD AURA ERROR:",
-            error
-        );
-
-        return "Sorry, I couldn't connect to AURA.";
+        return data.response;
     }
-}
 
     // =========================================================
     // TEXT TO SPEECH
@@ -1802,29 +1296,18 @@ try {
                         preferred;
                 }
 
-                utterance.onend = () => {
-    this.isSpeaking = false;
+                utterance.onend =
+                    () => {
 
-    this.setCoreState("idle");
+                        this.isSpeaking =
+                            false;
 
-    resolve();
+                        this.setCoreState(
+                            "idle"
+                        );
 
-    if (
-        this.waitingForUserChoice ||
-        this.waitingForMessageInput ||
-        this.waitingForEmailInput
-    ) {
-        setTimeout(() => {
-            if (
-                !this.isSpeaking &&
-                !this.isProcessing &&
-                !this.isListening
-            ) {
-                this.startListening();
-            }
-        }, 200);
-    }
-};
+                        resolve();
+                    };
 
                 utterance.onerror =
                     () => {
@@ -2472,8 +1955,7 @@ try {
         container.className =
             "aura-particles";
 
-        const particleCount =
-    window.innerWidth <= 768 ? 32 : 64;
+        const particleCount = 64;
 
         const radius = 92;
 
@@ -3197,7 +2679,7 @@ function startAuraHolographicEarth() {
         return;
     }
 
-    const SIZE = window.innerWidth <= 768 ? 360 : 520;
+    const SIZE = 520;
 
     canvas.width = SIZE;
     canvas.height = SIZE;
@@ -3816,7 +3298,7 @@ function startAuraHolographicEarth() {
 
 
         /* Full 360° continuous rotation */
-        rotation += window.innerWidth <= 768 ? 0.0025 : 0.0045;
+        rotation += 0.0045;
 
         if (
             rotation >=
