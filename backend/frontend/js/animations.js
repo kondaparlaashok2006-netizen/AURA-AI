@@ -1,1 +1,0 @@
-export function startHolographicEarth(){ /* move canvas animation here */ }
