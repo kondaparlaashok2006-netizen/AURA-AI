@@ -37,6 +37,15 @@ OPENROUTER_API_KEY = os.getenv(
     "OPENROUTER_API_KEY"
 )
 
+# Disabled by default so a normal AI request uses at most
+# Groq -> Gemini instead of Groq -> Gemini -> OpenRouter.
+ENABLE_OPENROUTER_FALLBACK = (
+    os.getenv(
+        "AURA_ENABLE_OPENROUTER_FALLBACK",
+        "false"
+    ).lower() == "true"
+)
+
 
 # ============================================================
 # CLIENTS
@@ -73,7 +82,8 @@ if (
     try:
 
         groq_client = Groq(
-            api_key=GROQ_API_KEY
+            api_key=GROQ_API_KEY,
+            timeout=8.0
         )
 
     except Exception as error:
@@ -96,7 +106,8 @@ class AIBrain:
 
         self.last_provider = None
 
-        self.max_history = 12
+        # Keep only recent turns to reduce prompt size and latency.
+        self.max_history = 6
 
         self.system_instruction = """
 You are AURA, a futuristic personal AI assistant.
@@ -198,7 +209,13 @@ modern personal AI assistant.
         messages = []
 
 
-        for message in self.history:
+        # Only recent history is sent to the provider.
+        # This keeps voice responses fast without removing memory.
+        recent_history = self.history[
+            -self.max_history:
+        ]
+
+        for message in recent_history:
 
             messages.append(
                 f"{message['role']}: "
@@ -264,7 +281,7 @@ modern personal AI assistant.
 
                 temperature=0.5,
 
-                max_tokens=180
+                max_tokens=120
             )
         )
 
@@ -327,7 +344,7 @@ modern personal AI assistant.
                         0.5,
 
                     "max_output_tokens":
-                        180
+                        120
                 }
             )
         )
@@ -574,6 +591,7 @@ modern personal AI assistant.
 
         if (
             not answer
+            and ENABLE_OPENROUTER_FALLBACK
             and OPENROUTER_API_KEY
         ):
 

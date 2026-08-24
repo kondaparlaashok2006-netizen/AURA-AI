@@ -771,24 +771,25 @@ openDesktopApp(app) {
     return `Opening ${app} desktop app.`;
 }
     getWebActionUrl(command) {
-    const text = command
-        .toLowerCase()
+    const text = command.toLowerCase().trim();
+
+    const clean = text
         .replace(/[.,!?]/g, "")
         .replace(/\s+/g, " ")
         .trim();
 
-    // =========================================================
-    // EXPLICIT WEBSITE REQUEST
-    // Examples:
-    // open whatsapp web
-    // open whatsapp website
-    // open instagram web
-    // launch youtube website
-    // =========================================================
-
-    const explicitWebMatch = text.match(
-        /^(?:please\s+)?(?:open|launch|start|go to|visit)\s+(.+?)\s+(?:website|site|web|web version)$/
+    const openMatch = clean.match(
+        /^(?:please\s+)?(?:open|launch|start|go to|visit)\s+(.+?)(?:\s+(?:website|site|web))?$/
     );
+
+    if (!openMatch) {
+        return null;
+    }
+
+    let target = openMatch[1]
+        .replace(/\bapp\b/g, "")
+        .replace(/\s+/g, " ")
+        .trim();
 
     const knownSites = {
         youtube: "https://www.youtube.com",
@@ -812,96 +813,10 @@ openDesktopApp(app) {
         flipkart: "https://www.flipkart.com"
     };
 
-    if (explicitWebMatch) {
-        let target = explicitWebMatch[1]
-            .replace(/\bapp\b/g, "")
-            .trim();
-
-        if (knownSites[target]) {
-            return knownSites[target];
-        }
-
-        if (
-            target.startsWith("http://") ||
-            target.startsWith("https://")
-        ) {
-            return target;
-        }
-
-        if (
-            target.includes(".com") ||
-            target.includes(".in") ||
-            target.includes(".org") ||
-            target.includes(".net")
-        ) {
-            return "https://" + target;
-        }
-
-        return (
-            "https://www.google.com/search?q=" +
-            encodeURIComponent(target)
-        );
-    }
-
-    // =========================================================
-    // NORMAL "OPEN" COMMANDS
-    //
-    // Desktop-preferred applications are NOT opened as websites.
-    // They must go to the local Windows agent first.
-    // =========================================================
-
-    const normalOpenMatch = text.match(
-        /^(?:please\s+)?(?:open|launch|start|go to|visit)\s+(.+)$/
-    );
-
-    if (!normalOpenMatch) {
-        return null;
-    }
-
-    let target = normalOpenMatch[1]
-        .replace(/\bapp\b/g, "")
-        .trim();
-
-    // Remove accidental web words if already handled above.
-    target = target
-        .replace(/\b(?:website|site|web|web version)\b/g, "")
-        .replace(/\s+/g, " ")
-        .trim();
-
-    // These should NOT be converted into websites.
-    // The local Windows agent gets the first chance.
-    const desktopPreferredApps = new Set([
-        "whatsapp",
-        "instagram",
-        "snapchat",
-        "spotify",
-        "discord",
-        "telegram",
-        "chrome",
-        "firefox",
-        "edge",
-        "notepad",
-        "calculator",
-        "paint",
-        "word",
-        "excel",
-        "powerpoint",
-        "vs code",
-        "visual studio code",
-        "steam",
-        "zoom"
-    ]);
-
-    if (desktopPreferredApps.has(target)) {
-        return null;
-    }
-
-    // Normal website commands.
     if (knownSites[target]) {
         return knownSites[target];
     }
 
-    // Direct URL.
     if (
         target.startsWith("http://") ||
         target.startsWith("https://")
@@ -918,9 +833,10 @@ openDesktopApp(app) {
         return "https://" + target;
     }
 
-    // Unknown "open X" commands are NOT automatically sent to Google.
-    // Let the local agent / AURA decide first.
-    return null;
+    return (
+        "https://www.google.com/search?q=" +
+        encodeURIComponent(target)
+    );
 }    
    getMessageAction(command) {
     const text = command
@@ -1000,18 +916,6 @@ parseMessageCommand(command) {
     }
 
     console.log("AURA COMMAND:", command);
-    const webActionUrl =
-    this.getWebActionUrl(command);
-
-if (webActionUrl) {
-
-    window.open(
-        webActionUrl,
-        "_blank"
-    );
-
-    return `Opening ${command.replace(/^.*?\b(open|launch|start|go to|visit)\b\s+/i, "").replace(/\s+(website|site|web|web version)$/i, "").trim()} Web.`;
-}
     
     const emailOpenCommand =
     /^(?:open|launch|start|go to)\s+(?:email|gmail)$/i.test(
@@ -1462,180 +1366,107 @@ if (
         return "Opening WhatsApp with your message ready.";
     }
 
- // =====================================================
-// LOCAL WINDOWS AGENT FIRST
-// =====================================================
-//
-// Desktop/device commands must get the first chance.
-// Examples:
-// open WhatsApp
-// open Calculator
-// open Downloads
-// lock my screen
-//
-// If the local agent handles the command, return immediately.
-// Only commands not handled locally should continue to
-// the browser/web fallback.
-//
+    // =====================================================
+    // DIRECT WEB ACTION
+    // =====================================================
 
-try {
-    const controller =
-        new AbortController();
-
-    const timeout =
-        setTimeout(
-            () => controller.abort(),
-            2000
+    const webActionUrl =
+        this.getWebActionUrl(command);
+    
+    if (webActionUrl) {
+        window.open(
+            webActionUrl,
+            "_blank"
         );
 
-    const localResponse =
-        await fetch(
-            "http://127.0.0.1:5050/command",
-            {
-                method: "POST",
-
-                headers: {
-                    "Content-Type":
-                        "application/json"
-                },
-
-                body: JSON.stringify({
-                    session_id:
-                        auraSessionId,
-
-                    username:
-                        auraUsername,
-
-                    command:
-                        command
-                }),
-
-                signal:
-                    controller.signal
-            }
-        );
-
-    clearTimeout(timeout);
-
-    const localData =
-        await localResponse.json();
-
-    console.log(
-        "LOCAL AGENT:",
-        localData
-    );
-
-    if (localData.username) {
-        auraUsername =
-            localData.username;
-
-        localStorage.setItem(
-            "aura_username",
-            auraUsername
-        );
+        return "Opening it.";
     }
+    
 
-    if (
-        localResponse.ok &&
-        localData.response
-    ) {
-        return String(
+    // =====================================================
+    // LOCAL WINDOWS AGENT
+    // =====================================================
+
+    try {
+        const controller =
+            new AbortController();
+
+        const timeout =
+            setTimeout(
+                () => controller.abort(),
+                1500
+            );
+
+        const localResponse =
+            await fetch(
+                "http://127.0.0.1:5050/command",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        session_id:
+                            auraSessionId,
+
+                        username:
+                            auraUsername,
+
+                        command:
+                            command
+                    }),
+
+                    signal:
+                        controller.signal
+                }
+            );
+
+        clearTimeout(timeout);
+
+        const localData =
+            await localResponse.json();
+
+        console.log(
+            "LOCAL AGENT:",
+            localData
+        );
+
+        if (localData.username) {
+            auraUsername =
+                localData.username;
+
+            localStorage.setItem(
+                "aura_username",
+                auraUsername
+            );
+        }
+
+        if (
+            localResponse.ok &&
             localData.response
+        ) {
+            return String(
+                localData.response
+            );
+        }
+
+    } catch (error) {
+        console.log(
+            "Local Agent timeout/unavailable:",
+            error
         );
     }
 
-} catch (error) {
+    // =====================================================
+    // CLOUD AURA
+    // =====================================================
 
-    console.log(
-        "Local Agent unavailable:",
-        error
-    );
-}
-
-
- // =====================================================
-// CLOUD AURA
-// =====================================================
-
-const AURA_API =
-    window.AURA_API_URL ||
-    "https://aura-ai-backend-cl7h.onrender.com";
-
-try {
-
-    const response =
-        await fetch(
-            `${AURA_API}/command`,
-            {
-                method: "POST",
-
-                headers: {
-                    "Content-Type":
-                        "application/json"
-                },
-
-                body: JSON.stringify({
-                    session_id:
-                        auraSessionId,
-
-                    username:
-                        auraUsername,
-
-                    command:
-                        command
-                })
-            }
-        );
-
-    const data =
-        await response.json();
-
-    console.log(
-        "CLOUD AURA:",
-        data
-    );
-
-    if (data.username) {
-
-        auraUsername =
-            data.username;
-
-        localStorage.setItem(
-            "aura_username",
-            auraUsername
-        );
-    }
-
-    if (!response.ok) {
-
-        throw new Error(
-            data.error ||
-            data.response ||
-            `Server error ${response.status}`
-        );
-    }
-
-    return String(
-        data.response ||
-        "I couldn't process that."
-    );
-
-} catch (error) {
-
-    console.error(
-        "CLOUD AURA ERROR:",
-        error
-    );
-
-    return "Sorry, I couldn't connect to AURA.";
-}
-
-    // =======================================
+    const AURA_API =
         window.AURA_API_URL ||
         "https://aura-ai-backend-cl7h.onrender.com";
-    window.AURA_API_URL ||
-    "https://aura-ai-backend-cl7h.onrender.com";
-
 
     try {
         const response =
@@ -2472,8 +2303,7 @@ try {
         container.className =
             "aura-particles";
 
-        const particleCount =
-    window.innerWidth <= 768 ? 32 : 64;
+        const particleCount = 64;
 
         const radius = 92;
 
@@ -3197,7 +3027,7 @@ function startAuraHolographicEarth() {
         return;
     }
 
-    const SIZE = window.innerWidth <= 768 ? 360 : 520;
+    const SIZE = 520;
 
     canvas.width = SIZE;
     canvas.height = SIZE;
@@ -3816,7 +3646,7 @@ function startAuraHolographicEarth() {
 
 
         /* Full 360° continuous rotation */
-        rotation += window.innerWidth <= 768 ? 0.0025 : 0.0045;
+        rotation += 0.0045;
 
         if (
             rotation >=
