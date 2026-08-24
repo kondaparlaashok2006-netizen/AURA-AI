@@ -1,5 +1,4 @@
 import os
-import re
 import subprocess
 import webbrowser
 
@@ -12,16 +11,60 @@ class LocalWindowsActions:
 
     def open_desktop_app(self, app):
 
-        app = app.lower().strip()
+        app = str(
+            app or ""
+        ).lower().strip()
 
         print(
             "AURA DESKTOP APP:",
             app
         )
 
+        if not app:
+            return None
 
         # -----------------------------------------------------
-        # WHATSAPP
+        # FAST LOCAL WINDOWS APPLICATIONS
+        # -----------------------------------------------------
+
+        built_in_apps = {
+            "calculator": "calc.exe",
+            "calc": "calc.exe",
+            "notepad": "notepad.exe",
+            "paint": "mspaint.exe",
+            "cmd": "cmd.exe",
+            "command prompt": "cmd.exe",
+            "powershell": "powershell.exe",
+            "file explorer": "explorer.exe",
+            "explorer": "explorer.exe",
+            "task manager": "taskmgr.exe",
+        }
+
+        if app in built_in_apps:
+
+            try:
+
+                subprocess.Popen(
+                    [built_in_apps[app]]
+                )
+
+                return (
+                    f"Opening {app.title()}."
+                )
+
+            except Exception as error:
+
+                print(
+                    "BUILT-IN APPLICATION ERROR:",
+                    error
+                )
+
+                return (
+                    f"I couldn't open {app}."
+                )
+
+        # -----------------------------------------------------
+        # WHATSAPP FAST PATH
         # -----------------------------------------------------
 
         if app == "whatsapp":
@@ -59,9 +102,7 @@ class LocalWindowsActions:
                             error
                         )
 
-
-            # Windows URI fallback
-
+            # Windows URI fallback.
             try:
 
                 os.startfile(
@@ -74,123 +115,68 @@ class LocalWindowsActions:
 
             except Exception:
 
-                return (
-                    "I couldn't find the WhatsApp "
-                    "desktop app on this computer."
-                )
-
+                pass
 
         # -----------------------------------------------------
-        # SPOTIFY
+        # GENERIC ALL-APPLICATION FALLBACK
+        # -----------------------------------------------------
+        #
+        # The local_agent.py now performs Windows Start Apps
+        # discovery. This compatibility fallback lets this
+        # class launch any application that Windows can resolve
+        # through the shell.
         # -----------------------------------------------------
 
-        if app == "spotify":
+        try:
 
-            try:
-
-                os.startfile(
-                    "spotify:"
-                )
-
-                return (
-                    "Opening Spotify desktop app."
-                )
-
-            except Exception:
-
-                return (
-                    "I couldn't open Spotify desktop app."
-                )
-
-
-        # -----------------------------------------------------
-        # DISCORD
-        # -----------------------------------------------------
-
-        if app == "discord":
-
-            try:
-
-                os.startfile(
-                    "discord:"
-                )
-
-                return (
-                    "Opening Discord desktop app."
-                )
-
-            except Exception:
-
-                return (
-                    "I couldn't open Discord desktop app."
-                )
-
-
-        # -----------------------------------------------------
-        # TELEGRAM
-        # -----------------------------------------------------
-
-        if app == "telegram":
-
-            try:
-
-                os.startfile(
-                    "tg:"
-                )
-
-                return (
-                    "Opening Telegram desktop app."
-                )
-
-            except Exception:
-
-                return (
-                    "I couldn't open Telegram desktop app."
-                )
-
-
-        # -----------------------------------------------------
-        # INSTAGRAM
-        # -----------------------------------------------------
-
-        if app == "instagram":
-
-            return (
-                "Instagram does not have a standard "
-                "Windows desktop app on this computer. "
-                "I can open Instagram in the browser."
+            result = subprocess.run(
+                [
+                    "powershell.exe",
+                    "-NoProfile",
+                    "-NonInteractive",
+                    "-ExecutionPolicy",
+                    "Bypass",
+                    "-Command",
+                    (
+                        "$a = Get-StartApps | "
+                        "Where-Object { $_.Name -like "
+                        f"'*{app}*' }} | "
+                        "Select-Object -First 1; "
+                        "if ($a) {{ "
+                        "Start-Process "
+                        "'shell:AppsFolder\\$($a.AppID)'; "
+                        "Write-Output $a.Name }}"
+                    )
+                ],
+                capture_output=True,
+                text=True,
+                timeout=5
             )
 
-
-        # -----------------------------------------------------
-        # SNAPCHAT
-        # -----------------------------------------------------
-
-        if app == "snapchat":
-
-            return (
-                "I couldn't find a Snapchat desktop "
-                "application. I can open Snapchat in "
-                "the browser."
+            found_name = (
+                result.stdout.strip()
             )
 
+            if (
+                result.returncode == 0
+                and
+                found_name
+            ):
 
-        # -----------------------------------------------------
-        # FACEBOOK
-        # -----------------------------------------------------
+                return (
+                    f"Opening {found_name}."
+                )
 
-        if app == "facebook":
+        except Exception as error:
 
-            return (
-                "I couldn't find a Facebook desktop "
-                "application. I can open Facebook in "
-                "the browser."
+            print(
+                "GENERIC APPLICATION ERROR:",
+                error
             )
-
 
         return (
-            f"I don't know how to open the "
-            f"{app} desktop app."
+            f"I couldn't find the "
+            f"{app} desktop app on this computer."
         )
 
 
@@ -200,81 +186,40 @@ class LocalWindowsActions:
 
     def open_application(self, command):
 
-        command = command.lower().strip()
+        command = str(
+            command or ""
+        ).lower().strip()
 
+        # Keep this method for compatibility with
+        # assistant.py. Desktop application requests
+        # are handled by open_desktop_app().
 
-        applications = {
+        prefixes = [
+            "open ",
+            "launch ",
+            "start ",
+            "go to ",
+            "bring up "
+        ]
 
-            "notepad": "notepad.exe",
+        app = command
 
-            "calculator":
-                "calc.exe",
+        for prefix in prefixes:
 
-            "calc":
-                "calc.exe",
+            if command.startswith(prefix):
 
-            "paint":
-                "mspaint.exe",
+                app = command[
+                    len(prefix):
+                ].strip()
 
-            "cmd":
-                "cmd.exe",
+                break
 
-            "command prompt":
-                "cmd.exe",
+        if not app:
+            return None
 
-            "powershell":
-                "powershell.exe",
-
-            "file explorer":
-                "explorer.exe",
-
-            "explorer":
-                "explorer.exe",
-
-            "task manager":
-                "taskmgr.exe",
-
-        }
-
-
-        for name, executable in applications.items():
-
-            patterns = [
-
-                f"open {name}",
-
-                f"launch {name}",
-
-                f"start {name}",
-
-            ]
-
-            if command in patterns:
-
-                try:
-
-                    subprocess.Popen(
-                        executable,
-                        shell=True
-                    )
-
-                    return (
-                        f"Opening {name.title()}."
-                    )
-
-                except Exception as error:
-
-                    print(
-                        "APPLICATION ERROR:",
-                        error
-                    )
-
-                    return (
-                        f"I couldn't open {name}."
-                    )
-
-
-        return None
+        return self.open_desktop_app(
+            app
+        )
 
 
     # =========================================================
@@ -283,8 +228,9 @@ class LocalWindowsActions:
 
     def open_folder(self, command):
 
-        command = command.lower().strip()
-
+        command = str(
+            command or ""
+        ).lower().strip()
 
         folders = {
 
@@ -320,18 +266,22 @@ class LocalWindowsActions:
 
         }
 
-
         for name, path in folders.items():
 
             if command in [
                 f"open {name}",
                 f"open {name} folder",
                 f"launch {name}",
+                f"start {name}",
+                f"go to {name}",
+                f"open the {name}",
             ]:
 
                 try:
 
-                    os.startfile(path)
+                    os.startfile(
+                        path
+                    )
 
                     return (
                         f"Opening {name}."
@@ -349,7 +299,6 @@ class LocalWindowsActions:
                         f"{name}."
                     )
 
-
         return None
 
 
@@ -359,8 +308,9 @@ class LocalWindowsActions:
 
     def system_command(self, command):
 
-        command = command.lower().strip()
-
+        command = str(
+            command or ""
+        ).lower().strip()
 
         # -----------------------------------------------------
         # LOCK
@@ -369,13 +319,9 @@ class LocalWindowsActions:
         if command in [
 
             "lock screen",
-
             "lock my screen",
-
             "lock the screen",
-
             "lock computer",
-
             "lock my computer",
 
         ]:
@@ -414,15 +360,10 @@ class LocalWindowsActions:
         if command in [
 
             "shutdown computer",
-
             "shutdown my computer",
-
             "shut down computer",
-
             "shut down my computer",
-
             "turn off computer",
-
             "turn off my computer",
 
         ]:
@@ -465,11 +406,8 @@ class LocalWindowsActions:
         if command in [
 
             "restart computer",
-
             "restart my computer",
-
             "reboot computer",
-
             "reboot my computer",
 
         ]:
@@ -512,9 +450,7 @@ class LocalWindowsActions:
         if command in [
 
             "cancel shutdown",
-
             "cancel restart",
-
             "stop shutdown",
 
         ]:
@@ -546,6 +482,5 @@ class LocalWindowsActions:
                     "There is no pending "
                     "shutdown to cancel."
                 )
-
 
         return None
