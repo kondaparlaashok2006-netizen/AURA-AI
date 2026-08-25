@@ -66,8 +66,45 @@ class LocalWindowsActions:
         # -----------------------------------------------------
         # WHATSAPP FAST PATH
         # -----------------------------------------------------
+        if app == "instagram":
+
+            try:
+                os.startfile(
+                    r"shell:AppsFolder\Facebook.InstagramBeta_8xx8rvfyw5nnt!App"
+                )
+
+                return "Opening Instagram desktop app."
+
+            except Exception as error:
+
+                print(
+                    "INSTAGRAM APP ERROR:",
+                     error
+                )
+
+                return "I couldn't open Instagram desktop app."
+
+        if app == "snapchat":
+
+            try:
+                os.startfile(
+                       r"shell:AppsFolder\SnapInc.Snapchat_k1zn018256b8e!App"
+                )
+
+                return "Opening Snapchat desktop app."
+
+            except Exception as error:
+
+                print(
+                    "SNAPCHAT APP ERROR:",
+                     error
+                )
+
+        return "I couldn't open Snapchat desktop app."
+
 
         if app == "whatsapp":
+            
 
             possible_paths = [
 
@@ -200,17 +237,17 @@ class LocalWindowsActions:
 
         for prefix in prefixes:
 
-            if command.startswith(prefix):
+             if command.startswith(prefix):
 
-                app = command[
-                    len(prefix):
-                ].strip()
+                 app = command[
+                     len(prefix):
+                 ].strip()
 
-                if not app:
-                    return None
+                 if not app:
+                     return None
 
-                return self.open_desktop_app(
-                    app
+                 return self.open_desktop_app(
+                     app
                 )
 
         return None
