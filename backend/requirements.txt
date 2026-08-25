@@ -6,3 +6,4 @@ groq>=0.31,<1
 google-genai>=1.0,<2
 Werkzeug>=3.1,<4
 gunicorn
+pyttsx3
