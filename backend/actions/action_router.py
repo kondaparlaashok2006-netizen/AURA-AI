@@ -1,5 +1,5 @@
-from actions.web_actions import WebActions
-from actions.local_windows_actions import LocalWindowsActions
+from backend.actions.web_actions import WebActions
+from backend.actions.local_windows_actions import LocalWindowsActions
 
 
 class ActionRouter:

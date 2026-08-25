@@ -5,9 +5,9 @@ import threading
 
 import pyttsx3
 
-from ai_brain import AIBrain
-from actions.action_router import ActionRouter
-from reminders import ReminderManager
+from backend.ai_brain import AIBrain
+from backend.actions.action_router import ActionRouter
+from backend.reminders import ReminderManager
 
 
 class AuraAssistant:
@@ -25,7 +25,7 @@ class AuraAssistant:
         self._initialize_engine()
 
         # ==================================================
-        # AI
+            # AI
         # ==================================================
 
         self.ai_brain = AIBrain()
@@ -378,12 +378,12 @@ class AuraAssistant:
         )
 
         text = text.replace(
-            "â€¢",
+            "•",
             ""
         )
 
         text = text.replace(
-            "â†’",
+            "→",
             ""
         )
 
@@ -451,6 +451,62 @@ class AuraAssistant:
             )
 
         return context
+
+    # =========================================================
+    # FAST DIRECT COMMAND CHECK
+    # =========================================================
+
+    def is_direct_command(self, command):
+
+        normalized = str(
+            command or ""
+        ).lower().strip()
+
+        direct_prefixes = (
+            "open ",
+            "launch ",
+            "start ",
+            "go to ",
+            "bring up ",
+            "search ",
+            "send ",
+            "text ",
+            "message ",
+            "remind me",
+            "set reminder",
+            "lock ",
+            "shutdown ",
+            "shut down ",
+            "restart ",
+            "reboot ",
+            "cancel shutdown",
+            "cancel restart",
+        )
+
+        direct_commands = {
+            "lock screen",
+            "lock my screen",
+            "lock the screen",
+            "lock computer",
+            "lock my computer",
+            "shutdown computer",
+            "shutdown my computer",
+            "shut down computer",
+            "shut down my computer",
+            "restart computer",
+            "restart my computer",
+            "reboot computer",
+            "reboot my computer",
+            "cancel shutdown",
+            "cancel restart",
+            "stop shutdown",
+        }
+
+        return (
+            normalized in direct_commands
+            or normalized.startswith(direct_prefixes)
+        )
+
 
     # =========================================================
     # AI
@@ -615,21 +671,24 @@ class AuraAssistant:
         command
     ):
 
-        apps = [
-            "whatsapp",
-            "instagram",
-            "snapchat",
-            "spotify",
-            "discord",
-            "telegram",
-            "facebook"
-        ]
+        command = str(
+            command or ""
+        ).lower().strip()
 
-        for app in apps:
+        app_name = re.sub(
+            r"^(open|launch|start|go to|bring up)\s+",
+            "",
+            command
+        ).strip()
 
-            if app in command:
+        app_name = re.sub(
+            r"\b(the|app|application)$",
+            "",
+            app_name
+        ).strip()
 
-                return app
+        if app_name:
+            return app_name
 
         return None
 
@@ -737,52 +796,76 @@ class AuraAssistant:
         command
     ):
 
+        command = str(
+            command or ""
+        ).lower().strip()
+
         app = self.detect_app(
             command
         )
 
         if not app:
-
             return None
 
-        # Explicit website
+        web_words = {
+            "web",
+            "website",
+            "browser",
+            "online",
+            "site"
+        }
+
+        command_words = set(
+            command.split()
+        )
 
         if (
-            "website" in command
-            or
-            "browser" in command
+            bool(
+                web_words.intersection(
+                    command_words
+                )
+            )
             or
             "web version" in command
         ):
 
-            return (
-                self.actions.open_app_website(
-                    app
+            self.pending_app = None
+
+            web_app = re.sub(
+                r"\b(web|website|browser|online|site)\b",
+                "",
+                app
+            ).strip()
+
+            known_web_apps = {
+                "whatsapp",
+                "instagram",
+                "snapchat",
+                "spotify",
+                "discord",
+                "telegram",
+                "facebook"
+            }
+
+            if web_app in known_web_apps:
+
+                return (
+                    self.actions.open_app_website(
+                        web_app
+                    )
                 )
+
+            return (
+                f"I don't have a website "
+                f"mapping for {web_app} yet."
             )
 
-        # Explicit desktop
-
-        if (
-            "desktop" in command
-            or
-            "desktop app" in command
-        ):
-
-            return (
-                self.actions.open_desktop_app(
-                    app
-                )
-            )
-
-        # Ask user
-
-        self.pending_app = app
+        self.pending_app = None
 
         return (
-            f"Do you want me to open "
-            f"{app.title()} as the desktop "
-            f"app or open its website?"
+            self.actions.open_desktop_app(
+                app
+            )
         )
 
     # =========================================================
@@ -955,6 +1038,10 @@ class AuraAssistant:
             f"YOU: {command}"
         )
 
+        # Direct commands are handled by local actions below.
+        # This marker makes it explicit that they must never
+        # be sent to Groq/Gemini as an unnecessary fallback.
+
         # =====================================================
         # FIRST NAME
         # =====================================================
@@ -1014,67 +1101,24 @@ class AuraAssistant:
 
             return response
 
-        # =====================================================
-        # OPEN COMMON APP
-        # =====================================================
-
-        common_apps = [
-            "whatsapp",
-            "instagram",
-            "snapchat",
-            "spotify",
-            "discord",
-            "telegram",
-            "facebook"
-        ]
-
-        for app in common_apps:
-
-            if normalized in [
-                app,
-                f"open {app}",
-                f"launch {app}",
-                f"start {app}"
-            ]:
-
-                self.pending_app = app
-
-                response = (
-                    f"Do you want me to open "
-                    f"{app.title()} as the desktop "
-                    f"app or open its website?"
-                )
-
-                self.remember(
-                    command,
-                    response
-                )
-
-                return response
-
+# =====================================================
         # =====================================================
         # OPEN APP
         # =====================================================
 
         if (
-            normalized.startswith(
-                "open "
-            )
+            normalized.startswith("open ")
             or
-            normalized.startswith(
-                "launch "
-            )
+            normalized.startswith("launch ")
             or
-            normalized.startswith(
-                "start "
-            )
+            normalized.startswith("start ")
+            or
+            normalized.startswith("go to ")
+            or
+            normalized.startswith("bring up ")
         ):
 
-            response = (
-                self.handle_open_app(
-                    normalized
-                )
-            )
+            response = self.handle_open_app(normalized)
 
             if response:
 
@@ -1085,7 +1129,6 @@ class AuraAssistant:
 
                 return response
 
-        # =====================================================
         # EXISTING WEBSITE / SEARCH ACTIONS
         # =====================================================
 
@@ -1278,10 +1321,90 @@ class AuraAssistant:
             )
 
             return response
+        # =====================================================
+        # AURA IDENTITY / DEFINITION
+        # =====================================================
+
+        normalized_command = (
+            command.lower()
+            .strip()
+            .replace("?", "")
+        )
+
+        # What does AURA stand for?
+        if any(phrase in normalized_command for phrase in [
+            "what does aura stand for",
+            "what does aura stands for",
+            "what is aura short for",
+            "aura full form",
+            "aura full name",
+            "full form of aura",
+            "expand aura",
+        ]):
+
+            return (
+                "AURA stands for Advanced Unified "
+                "Responsive Assistant."
+            )
+
+        # What does AURA mean?
+        if any(phrase in normalized_command for phrase in [
+            "what is aura",
+            "what is the meaning of aura",
+            "what does aura mean",
+            "define aura",
+            "definition of aura",
+            "tell me about aura",
+        ]):
+
+            return (
+                "AURA means Advanced Unified Responsive "
+                "Assistant. I am a personal AI assistant "
+                "designed to understand your voice, respond "
+                "to your commands, control your computer, "
+                "and help you with everyday tasks."
+            )
+
+        # Who created / made / invented AURA?
+        if any(phrase in normalized_command for phrase in [
+            "who created you",
+            "who created aura",
+            "who made you",
+            "who made aura",
+            "who built you",
+            "who built aura",
+            "who developed you",
+            "who developed aura",
+            "who invented you",
+            "who invented aura",
+            "who is your creator",
+            "who is aura creator",
+        ]):
+
+            return (
+                "I was created and developed by Ashok "
+                "as the AURA AI project."
+            )
+
+        # Who are you?
+        if any(phrase in normalized_command for phrase in [
+            "who are you",
+            "what are you",
+            "tell me about yourself",
+        ]):
+
+            return (
+                "I am AURA, your Advanced Unified Responsive "
+                "Assistant, created and developed by Ashok."
+            )
 
         # =====================================================
         # AI FALLBACK
         # =====================================================
+
+        # Every known/direct command should already have returned
+        # above. Only genuine conversational/unknown requests
+        # reach AIBrain, preventing unnecessary API usage.
 
         try:
 
