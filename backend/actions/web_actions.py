@@ -465,47 +465,164 @@ class WebActions:
                 "I couldn't prepare the WhatsApp message."
             )
 
+    # =========================================================
+    # SOCIAL CALLING
+    # =========================================================
 
+    def call_whatsapp(self, contact):
+
+        contact = str(
+            contact or ""
+        ).strip()
+
+        phone = re.sub(
+            r"[^0-9]",
+            "",
+            contact
+        )
+
+        if not phone:
+            return (
+                "I need the contact's phone number "
+                "to start a WhatsApp call."
+            )
+
+        url = (
+            "https://wa.me/"
+            + phone
+        )
+
+        if self._open_url(url):
+            return (
+                f"Opening WhatsApp for {contact}."
+            )
+
+        return (
+            "I couldn't open WhatsApp."
+        )
+
+
+    def call_instagram(self, contact=None):
+
+        if contact:
+
+            username = str(
+                contact
+            ).strip().lstrip("@")
+
+            url = (
+                "https://www.instagram.com/"
+                + urllib.parse.quote(
+                    username
+                )
+                + "/"
+            )
+
+        else:
+
+            url = (
+                "https://www.instagram.com/"
+            )
+
+        if self._open_url(url):
+
+            if contact:
+                return (
+                    f"Opening Instagram for {contact}."
+                )
+
+            return "Opening Instagram."
+
+        return "I couldn't open Instagram."
+
+
+    def call_snapchat(self, contact=None):
+
+        if contact:
+
+            username = str(
+                contact
+            ).strip().lstrip("@")
+
+            url = (
+                "https://www.snapchat.com/add/"
+                + urllib.parse.quote(
+                    username
+                )
+            )
+
+        else:
+
+            url = (
+                "https://www.snapchat.com/"
+            )
+
+        if self._open_url(url):
+
+            if contact:
+                return (
+                    f"Opening Snapchat for {contact}."
+                )
+
+            return "Opening Snapchat."
+
+        return "I couldn't open Snapchat."
     # =========================================================
     # APP WEBSITE
     # =========================================================
 
     def open_app_website(self, app):
 
+        app = str(
+            app or ""
+        ).lower().strip()
+
+        app = re.sub(
+            r"\\s+",
+            " ",
+            app
+        ).strip()
+
+        if not app:
+            return "I need a website name."
+
         websites = {
-
-            "whatsapp":
-                "https://web.whatsapp.com",
-
-            "instagram":
-                "https://www.instagram.com",
-
-            "snapchat":
-                "https://www.snapchat.com",
-
-            "spotify":
-                "https://open.spotify.com",
-
-            "discord":
-                "https://discord.com/app",
-
-            "telegram":
-                "https://web.telegram.org",
-
-            "facebook":
-                "https://www.facebook.com",
-
+            "whatsapp": "https://web.whatsapp.com",
+            "instagram": "https://www.instagram.com",
+            "snapchat": "https://www.snapchat.com",
+            "spotify": "https://open.spotify.com",
+            "discord": "https://discord.com/app",
+            "telegram": "https://web.telegram.org",
+            "facebook": "https://www.facebook.com",
+            "youtube": "https://www.youtube.com",
+            "google": "https://www.google.com",
+            "github": "https://github.com",
+            "reddit": "https://www.reddit.com",
+            "linkedin": "https://www.linkedin.com",
+            "amazon": "https://www.amazon.com",
+            "netflix": "https://www.netflix.com",
         }
 
-        url = websites.get(
-            app.lower().strip()
-        )
+        url = websites.get(app)
 
         if not url:
 
-            return (
-                f"I don't have a website "
-                f"for {app}."
+            slug = re.sub(
+                r"[^a-z0-9]+",
+                "",
+                app
+            )
+
+            if not slug:
+                return (
+                    f"I couldn't determine the website "
+                    f"for {app}."
+                )
+
+            url = (
+                "https://www."
+                + slug
+                + ".com"
             )
 
         if self._open_url(url):

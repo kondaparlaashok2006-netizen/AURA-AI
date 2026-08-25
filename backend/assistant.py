@@ -675,8 +675,15 @@ class AuraAssistant:
             command or ""
         ).lower().strip()
 
+        command = re.sub(
+            r"^(please|can you|could you|would you)\s+",
+            "",
+            command
+        ).strip()
+
         match = re.match(
-            r"^(open|launch|start|go to|bring up)\s+(.+)$",
+            r"^(open|launch|start|go to|bring up|take me to|show me|"
+            r"visit|access)\s+(.+)$",
             command
         )
 
@@ -686,7 +693,7 @@ class AuraAssistant:
         app_name = match.group(2).strip()
 
         app_name = re.sub(
-            r"\b(the|app|application)$",
+            r"\b(the|app|application|website|web|browser|online|site)$",
             "",
             app_name
         ).strip()
@@ -840,36 +847,26 @@ class AuraAssistant:
                 app
             ).strip()
 
-            known_web_apps = {
-                "whatsapp",
-                "instagram",
-                "snapchat",
-                "spotify",
-                "discord",
-                "telegram",
-                "facebook"
-            }
-
-            if web_app in known_web_apps:
-
-                return (
-                    self.actions.open_app_website(
-                        web_app
-                    )
-                )
-
             return (
-                f"I don't have a website "
-                f"mapping for {web_app} yet."
+                self.actions.open_app_website(
+                    web_app
+                )
             )
 
         self.pending_app = None
 
-        return (
-            self.actions.open_desktop_app(
+        response = self.actions.open_desktop_app(
+            app
+        )
+
+        if response and str(response).lower().startswith(
+            "i couldn't find"
+        ):
+            return self.actions.open_app_website(
                 app
             )
-        )
+
+        return response
 
     # =========================================================
     # WHATSAPP MESSAGE
@@ -966,6 +963,109 @@ class AuraAssistant:
                     )
 
         return None
+
+    # =========================================================
+    # SOCIAL CALLING
+    # =========================================================
+
+    def handle_social_call(
+        self,
+        command
+    ):
+
+        text = str(
+            command or ""
+        ).strip()
+
+        lower = text.lower()
+
+        call_words = [
+            "start a video call with ",
+            "start a voice call with ",
+            "start a call with ",
+            "video call ",
+            "voice call ",
+            "call "
+        ]
+
+        platform = None
+
+        if "whatsapp" in lower:
+            platform = "whatsapp"
+
+        elif "instagram" in lower:
+            platform = "instagram"
+
+        elif "snapchat" in lower:
+            platform = "snapchat"
+
+        if not platform:
+            return None
+
+        contact = lower
+
+        for word in [
+            "on whatsapp",
+            "on instagram",
+            "on snapchat",
+            "using whatsapp",
+            "using instagram",
+            "using snapchat",
+            "via whatsapp",
+            "via instagram",
+            "via snapchat"
+        ]:
+
+            contact = contact.replace(
+                word,
+                ""
+            )
+
+        for word in call_words:
+
+            if word in contact:
+
+                contact = contact.split(
+                    word,
+                    1
+                )[1].strip()
+
+                break
+
+        contact = contact.strip()
+
+        if not contact:
+            return (
+                f"Who would you like to call "
+                f"on {platform.title()}?"
+            )
+
+        if platform == "whatsapp":
+
+            return (
+                self.actions.call_whatsapp(
+                    contact
+                )
+            )
+
+        if platform == "instagram":
+
+            return (
+                self.actions.call_instagram(
+                    contact
+                )
+            )
+
+        if platform == "snapchat":
+
+            return (
+                self.actions.call_snapchat(
+                    contact
+                )
+            )
+
+        return None
+
 
     # =========================================================
     # REMINDER
@@ -1072,6 +1172,25 @@ class AuraAssistant:
 
         response = (
             self.handle_whatsapp_message(
+                command
+            )
+        )
+
+        if response:
+
+            self.remember(
+                command,
+                response
+            )
+
+            return response
+
+        # =====================================================
+        # SOCIAL CALL
+        # =====================================================
+
+        response = (
+            self.handle_social_call(
                 command
             )
         )

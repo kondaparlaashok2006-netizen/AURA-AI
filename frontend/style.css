@@ -5655,3 +5655,554 @@ footer {
         height: 310px !important;
     }
 }
+/* =========================================================
+   AURA — FINAL RESPONSIVE MOBILE OPTIMIZATION
+   Keep existing desktop design unchanged
+   ========================================================= */
+
+@media (max-width: 720px) {
+
+    html,
+    body {
+        width: 100%;
+        min-width: 0;
+        overflow-x: hidden;
+    }
+
+    .aura-app {
+        width: calc(100% - 24px);
+        max-width: 100%;
+        padding-top: 14px;
+        padding-bottom: 18px;
+    }
+
+    .top-bar {
+        width: 100%;
+        gap: 10px;
+    }
+
+    .brand {
+        min-width: 0;
+        gap: 9px;
+    }
+
+    .brand-orb {
+        flex: 0 0 40px;
+        width: 40px;
+        height: 40px;
+        font-size: 17px;
+    }
+
+    .brand h1 {
+        font-size: 17px !important;
+        letter-spacing: 2.5px;
+    }
+
+    .brand span {
+        font-size: 9px;
+    }
+
+    .system-status {
+        max-width: 135px;
+        padding: 7px 9px;
+        font-size: 9px;
+        white-space: nowrap;
+    }
+
+    /* -------------------------
+       CORE
+       ------------------------- */
+
+    .core-section {
+        width: min(82vw, 320px) !important;
+        height: min(82vw, 320px) !important;
+        margin: 28px auto 22px !important;
+    }
+
+    .aura-core > .core-letter {
+        width: min(78vw, 300px) !important;
+        height: min(78vw, 300px) !important;
+    }
+
+    .aura-globe {
+        width: min(74vw, 285px) !important;
+        height: min(74vw, 285px) !important;
+    }
+
+    /* -------------------------
+       CONVERSATION
+       ------------------------- */
+
+    .conversation-panel {
+        width: 100%;
+        grid-template-columns: 1fr !important;
+        gap: 12px;
+    }
+
+    .message-block {
+        min-height: 0;
+        padding: 16px;
+        border-radius: 15px;
+    }
+
+    .message-title {
+        margin-bottom: 8px;
+        font-size: 10px;
+        letter-spacing: 2px;
+    }
+
+    .message-text {
+        font-size: 14px;
+        line-height: 1.55;
+    }
+
+    /* -------------------------
+       CONTROL BUTTONS
+       ------------------------- */
+
+    .controls {
+        grid-template-columns: 1fr !important;
+        gap: 10px;
+        margin-top: 12px;
+    }
+
+    .control-button {
+        min-height: 64px;
+        padding: 12px 14px;
+        border-radius: 15px;
+    }
+
+    .button-icon {
+        flex: 0 0 38px;
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+    }
+
+    .button-icon svg {
+        width: 20px;
+        height: 20px;
+    }
+
+    .button-content strong {
+        font-size: 13px;
+    }
+
+    .button-content small {
+        font-size: 10px;
+        white-space: normal;
+    }
+
+    /* -------------------------
+       TEXT COMMAND
+       ------------------------- */
+
+    .text-command-wrapper {
+        gap: 6px;
+        padding: 6px;
+        border-radius: 15px;
+    }
+
+    .text-command-input {
+        height: 44px;
+        padding: 0 11px;
+        font-size: 13px;
+    }
+
+    .send-command-button {
+        height: 44px;
+        min-width: 46px;
+        padding: 0 12px;
+    }
+
+    .close-command-button {
+        width: 30px;
+        height: 30px;
+        flex-basis: 30px;
+        font-size: 19px;
+    }
+
+    /* -------------------------
+       MODE / FOOTER
+       ------------------------- */
+
+    .mode-info {
+        gap: 10px 16px;
+        margin-top: 12px;
+        font-size: 9px;
+    }
+
+    footer {
+        padding-top: 20px;
+        gap: 6px;
+        flex-wrap: wrap;
+        text-align: center;
+        font-size: 9px;
+    }
+}
+
+
+/* =========================================================
+   VERY SMALL PHONES
+   ========================================================= */
+
+@media (max-width: 380px) {
+
+    .aura-app {
+        width: calc(100% - 16px);
+    }
+
+    .top-bar {
+        gap: 6px;
+    }
+
+    .brand-orb {
+        flex-basis: 36px;
+        width: 36px;
+        height: 36px;
+        font-size: 15px;
+    }
+
+    .brand h1 {
+        font-size: 15px !important;
+        letter-spacing: 2px;
+    }
+
+    .brand span {
+        display: none;
+    }
+
+    .system-status {
+        max-width: 105px;
+        font-size: 8px;
+        padding: 6px 8px;
+    }
+
+    .core-section {
+        width: min(78vw, 285px) !important;
+        height: min(78vw, 285px) !important;
+        margin-top: 22px !important;
+    }
+
+    .aura-core > .core-letter {
+        width: min(72vw, 265px) !important;
+        height: min(72vw, 265px) !important;
+    }
+
+    .aura-globe {
+        width: min(68vw, 250px) !important;
+        height: min(68vw, 250px) !important;
+    }
+
+    .message-block {
+        padding: 14px;
+    }
+
+    .message-text {
+        font-size: 13px;
+    }
+
+    .control-button {
+        min-height: 60px;
+        padding: 10px 12px;
+    }
+}
+
+
+/* =========================================================
+   TOUCH DEVICES
+   ========================================================= */
+
+@media (hover: none) and (pointer: coarse) {
+
+    .control-button,
+    .send-command-button,
+    .close-command-button {
+        min-height: 44px;
+    }
+
+    .control-button:hover {
+        transform: none;
+    }
+
+    .send-command-button:hover {
+        transform: none;
+    }
+}
+/* =========================================================
+   NATURAL CONVERSATION — NO TEXT BOXES
+   ========================================================= */
+
+.conversation-panel {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 18px !important;
+}
+
+.message-block {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 4px 0 !important;
+    border-radius: 0 !important;
+}
+
+.message-title {
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+}
+
+.message-text {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 3px 0 !important;
+}
+
+.user-message {
+    text-align: left;
+}
+
+.aura-message {
+    text-align: left;
+}
+
+@media (max-width: 720px) {
+    .conversation-panel {
+        gap: 14px !important;
+    }
+
+    .message-block {
+        padding: 3px 0 !important;
+    }
+
+    .message-text {
+        line-height: 1.55 !important;
+    }
+}
+/* =========================================================
+   AURA — USER COLOR PANEL
+   ========================================================= */
+
+:root {
+    --aura-user-color: #28d7ff;
+    --aura-user-glow: #28d7ff99;
+    --aura-user-soft: #28d7ff33;
+}
+
+#auraColorPanel {
+    position: fixed;
+    right: 18px;
+    bottom: 18px;
+    z-index: 9999;
+}
+
+#auraColorPanel label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    border: 1px solid var(--aura-user-glow);
+    border-radius: 999px;
+    background: rgba(5, 10, 20, 0.72);
+    backdrop-filter: blur(10px);
+    color: var(--aura-user-color);
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    cursor: pointer;
+    box-shadow: 0 0 18px var(--aura-user-soft);
+}
+
+#auraColorPicker {
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+}
+
+.brand-orb,
+.system-status,
+.core-label,
+.message-title,
+.mode-dot {
+    color: var(--aura-user-color) !important;
+}
+
+.control-button {
+    border-color: var(--aura-user-glow) !important;
+}
+
+.control-button:hover,
+.control-button.active {
+    border-color: var(--aura-user-color) !important;
+    box-shadow: 0 0 22px var(--aura-user-soft) !important;
+}
+
+@media (max-width: 720px) {
+
+    #auraColorPanel {
+        right: 10px;
+        bottom: 10px;
+    }
+
+    #auraColorPanel label span {
+        display: none;
+    }
+}
+/* =========================================================
+   AURA — FULL USER COLOR THEME
+   Status box intentionally excluded
+   ========================================================= */
+
+body {
+    background:
+        radial-gradient(
+            circle at 50% 35%,
+            var(--aura-user-soft),
+            transparent 38%
+        ),
+        radial-gradient(
+            circle at 15% 85%,
+            var(--aura-user-soft),
+            transparent 32%
+        ),
+        #05070d !important;
+
+    color: var(--aura-user-color) !important;
+}
+
+.aura-app {
+    color: var(--aura-user-color) !important;
+}
+
+.brand-orb {
+    background:
+        radial-gradient(
+            circle,
+            var(--aura-user-color),
+            transparent 70%
+        ) !important;
+
+    border-color: var(--aura-user-color) !important;
+    box-shadow:
+        0 0 18px var(--aura-user-glow),
+        0 0 45px var(--aura-user-soft) !important;
+}
+
+.brand h1,
+.brand span,
+.core-label,
+.message-title,
+.message-text,
+.mode-item,
+footer {
+    color: var(--aura-user-color) !important;
+}
+
+.conversation-panel,
+.message-block {
+    border-color: var(--aura-user-glow) !important;
+}
+
+.control-button {
+    color: var(--aura-user-color) !important;
+    border-color: var(--aura-user-glow) !important;
+    box-shadow:
+        0 0 14px var(--aura-user-soft) !important;
+}
+
+.control-button:hover,
+.control-button.active {
+    background: var(--aura-user-soft) !important;
+    border-color: var(--aura-user-color) !important;
+    box-shadow:
+        0 0 25px var(--aura-user-glow) !important;
+}
+
+.button-icon {
+    color: var(--aura-user-color) !important;
+    border-color: var(--aura-user-glow) !important;
+    background: var(--aura-user-soft) !important;
+}
+
+.button-icon svg {
+    stroke: var(--aura-user-color) !important;
+}
+
+.text-command-panel,
+.text-command-wrapper {
+    border-color: var(--aura-user-glow) !important;
+}
+
+.text-command-input {
+    color: var(--aura-user-color) !important;
+    border-color: var(--aura-user-glow) !important;
+    caret-color: var(--aura-user-color) !important;
+}
+
+.send-command-button {
+    color: var(--aura-user-color) !important;
+    border-color: var(--aura-user-color) !important;
+    background: var(--aura-user-soft) !important;
+}
+
+.mode-dot {
+    background: var(--aura-user-color) !important;
+    box-shadow:
+        0 0 12px var(--aura-user-color) !important;
+}
+
+/* Keep READY / PROCESSING status box unchanged */
+.system-status {
+    color: inherit !important;
+    background: inherit !important;
+    border-color: inherit !important;
+    box-shadow: inherit !important;
+}
+/* =========================================================
+   AURA — APPLY USER COLOR TO CORE + PROCESSING EFFECTS
+   ========================================================= */
+
+.aura-globe {
+    filter:
+        hue-rotate(var(--aura-hue, 0deg))
+        drop-shadow(0 0 8px var(--aura-user-color))
+        drop-shadow(0 0 25px var(--aura-user-glow))
+        drop-shadow(0 0 55px var(--aura-user-soft)) !important;
+}
+
+.aura-particles,
+.core-pulse,
+.core-ring {
+    filter: hue-rotate(var(--aura-hue, 0deg)) !important;
+}
+
+.control-button,
+.mic-button,
+.continuous-button,
+.text-command-toggle,
+.send-command-button {
+    color: var(--aura-user-color) !important;
+    border-color: var(--aura-user-color) !important;
+}
+
+.control-button svg,
+.mic-button svg,
+.continuous-button svg,
+.text-command-toggle svg,
+.send-command-button svg {
+    stroke: var(--aura-user-color) !important;
+}
+
+.aura-core.processing,
+.aura-core.speaking {
+    filter:
+        drop-shadow(0 0 20px var(--aura-user-glow))
+        drop-shadow(0 0 50px var(--aura-user-soft));
+}

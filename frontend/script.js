@@ -40,6 +40,7 @@ class AuraVoiceController {
 
         this.IDLE_TIMEOUT = 15000;
 
+
         // =====================================================
         // UI
         // =====================================================
@@ -795,10 +796,71 @@ this.recognition.onerror = (event) => {
     // =========================================================
     // PROCESS COMMAND
     // =========================================================
+    handleColorCommand(command) {
 
+    const text =
+        String(command || "")
+            .toLowerCase()
+            .trim();
+
+    const match =
+        text.match(
+            /(?:change|set|make)\s+(?:your\s+|the\s+|aura\s+)?(?:interface\s+)?color\s+(?:to\s+)?([a-z]+)/
+        );
+
+    if (!match) {
+        return null;
+    }
+
+    const colors = {
+        blue: "#28d7ff",
+        cyan: "#28d7ff",
+        purple: "#a855f7",
+        violet: "#8b5cf6",
+        pink: "#ec4899",
+        red: "#ef4444",
+        orange: "#f97316",
+        yellow: "#eab308",
+        green: "#22c55e",
+        lime: "#84cc16",
+        white: "#ffffff"
+    };
+
+    const color =
+        colors[match[1]];
+
+    if (!color) {
+        return (
+            `I don't have a preset for ${match[1]} yet.`
+        );
+    }
+
+    if (window.auraSetColor) {
+        window.auraSetColor(color);
+    }
+
+    return (
+        `I've changed my interface color to ${match[1]}.`
+    );
+}
     async processCommand(
         command
     ) {
+        const colorCommand =
+            this.handleColorCommand(command);
+
+        if (colorCommand) {
+
+            this.showResponse(
+                colorCommand
+            );
+
+            await this.speak(
+                colorCommand
+            );
+
+            return;
+        }
 
         this.isProcessing =
             true;
@@ -1087,7 +1149,12 @@ this.recognition.onerror = (event) => {
             normalizedCommand.includes("restart computer") ||
             normalizedCommand.includes("restart my computer") ||
             normalizedCommand.includes("cancel shutdown") ||
-            normalizedCommand.includes("cancel restart");
+            normalizedCommand.includes("cancel restart")
+            normalizedCommand === "lock screen" ||
+            normalizedCommand === "lock my screen" ||
+            normalizedCommand === "lock the screen" ||
+            normalizedCommand === "lock computer" ||
+            normalizedCommand === "lock my computer";
 
         if (localCommand) {
 
@@ -1113,7 +1180,7 @@ this.recognition.onerror = (event) => {
 
                 console.log(
                     "LOCAL AGENT:",
-                    localData
+                    JSON.stringify(localData, null, 2)
                 );
 
                 if (localData.username) {
@@ -3356,3 +3423,163 @@ document.addEventListener(
 
     }
 );
+/* =========================================================
+   AURA — PER USER INTERFACE COLOR
+   ========================================================= */
+
+(function initAuraTheme() {
+
+    const DEFAULT_COLOR = "#28d7ff";
+
+    function getUserKey() {
+
+        const username =
+            localStorage.getItem(
+                "aura_username"
+            );
+
+        return (
+            username &&
+            username.trim()
+        )
+            ? username.trim().toLowerCase()
+            : "guest";
+    }
+
+    function getColorKey() {
+
+        return (
+            "aura_interface_color_" +
+            getUserKey()
+        );
+    }
+
+    function applyColor(color) {
+
+        if (!/^#[0-9a-fA-F]{6}$/.test(color)) {
+            color = DEFAULT_COLOR;
+        }
+
+        document.documentElement.style.setProperty(
+            "--aura-user-color",
+            color
+        );
+
+        document.documentElement.style.setProperty(
+            "--aura-user-glow",
+            color + "99"
+        );
+
+        document.documentElement.style.setProperty(
+            "--aura-user-soft",
+            color + "33"
+        );
+        const hueMap = {
+            "#28d7ff": "0deg",
+            "#a855f7": "55deg",
+            "#8b5cf6": "50deg",
+            "#ec4899": "140deg",
+            "#ef4444": "-190deg",
+            "#f97316": "-160deg",
+            "#eab308": "-140deg",
+            "#22c55e": "-70deg",
+            "#84cc16": "-80deg",
+            "#ffffff": "0deg"
+        };
+
+        document.documentElement.style.setProperty(
+            "--aura-hue",
+            hueMap[color.toLowerCase()] || "0deg"
+        );
+    }
+
+    function loadColor() {
+
+        const saved =
+            localStorage.getItem(
+                getColorKey()
+            );
+
+        applyColor(
+            saved || DEFAULT_COLOR
+        );
+    }
+
+    function saveColor(color) {
+
+        localStorage.setItem(
+            getColorKey(),
+            color
+        );
+
+        applyColor(color);
+    }
+
+    window.auraSetColor =
+        function(color) {
+
+            saveColor(color);
+
+        };
+
+    window.auraLoadUserColor =
+        function() {
+
+            loadColor();
+
+        };
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        () => {
+
+            const panel =
+                document.createElement(
+                    "div"
+                );
+
+            panel.id =
+                "auraColorPanel";
+
+            panel.innerHTML = `
+                <label
+                    for="auraColorPicker"
+                    title="Change AURA interface color"
+                >
+                    <span>AURA COLOR</span>
+                    <input
+                        id="auraColorPicker"
+                        type="color"
+                        value="${DEFAULT_COLOR}"
+                    >
+                </label>
+            `;
+
+            document.body.appendChild(panel);
+
+            const picker =
+                document.getElementById(
+                    "auraColorPicker"
+                );
+
+            loadColor();
+
+            picker.addEventListener(
+                "input",
+                event => {
+
+                    saveColor(
+                        event.target.value
+                    );
+
+                }
+            );
+
+            window.addEventListener(
+                "aura-user-changed",
+                loadColor
+            );
+        }
+    );
+
+})();

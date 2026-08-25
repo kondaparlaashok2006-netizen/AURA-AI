@@ -38,6 +38,14 @@ class ActionRouter:
             contact,
             message
         )
+    def call_whatsapp(self, contact):
+        return self.web.call_whatsapp(contact)
+
+    def call_instagram(self, contact=None):
+        return self.web.call_instagram(contact)
+
+    def call_snapchat(self, contact=None):
+        return self.web.call_snapchat(contact)
 
     # =========================================================
     # LOCAL WINDOWS ACTIONS
