@@ -978,6 +978,25 @@ class AuraAssistant:
         ).strip()
 
         lower = text.lower()
+        call_phrases = [
+            "call ",
+            "video call ",
+            "voice call ",
+            "start a call ",
+            "start a video call ",
+            "start a voice call ",
+            "make a call ",
+            "make a video call ",
+            "make a voice call ",
+        ]
+
+        has_call_phrase = any(
+            phrase in lower
+            for phrase in call_phrases
+        )
+
+        if not has_call_phrase:
+            return None
 
         call_words = [
             "start a video call with ",
