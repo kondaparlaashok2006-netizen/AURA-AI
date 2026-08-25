@@ -190,10 +190,6 @@ class LocalWindowsActions:
             command or ""
         ).lower().strip()
 
-        # Keep this method for compatibility with
-        # assistant.py. Desktop application requests
-        # are handled by open_desktop_app().
-
         prefixes = [
             "open ",
             "launch ",
@@ -201,8 +197,6 @@ class LocalWindowsActions:
             "go to ",
             "bring up "
         ]
-
-        app = command
 
         for prefix in prefixes:
 
@@ -212,16 +206,14 @@ class LocalWindowsActions:
                     len(prefix):
                 ].strip()
 
-                break
+                if not app:
+                    return None
 
-        if not app:
-            return None
+                return self.open_desktop_app(
+                    app
+                )
 
-        return self.open_desktop_app(
-            app
-        )
-
-
+        return None
     # =========================================================
     # OPEN FOLDER
     # =========================================================

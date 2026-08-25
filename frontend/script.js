@@ -419,11 +419,12 @@ this.recognition.onerror = (event) => {
         event.error
     );
 };
+    }
     // =========================================================
     // BUTTONS
     // =========================================================
 
-    setupButtons()
+    setupButtons() {
 
         // =====================================================
         // NORMAL MICROPHONE
@@ -1071,56 +1072,79 @@ this.recognition.onerror = (event) => {
         // LOCAL WINDOWS AGENT
         // =====================================================
 
-        try {
+        const normalizedCommand = command
+            .toLowerCase()
+            .trim();
 
-            const localResponse = await fetch(
-                "http://127.0.0.1:5050/command",
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        session_id: auraSessionId,
-                        username: auraUsername,
-                        command: command
-                    })
+        const localCommand =
+            normalizedCommand.startsWith("open ") ||
+            normalizedCommand.startsWith("launch ") ||
+            normalizedCommand.startsWith("start ") ||
+            normalizedCommand.startsWith("go to ") ||
+            normalizedCommand.startsWith("bring up ") ||
+            normalizedCommand.includes("shutdown computer") ||
+            normalizedCommand.includes("shutdown my computer") ||
+            normalizedCommand.includes("restart computer") ||
+            normalizedCommand.includes("restart my computer") ||
+            normalizedCommand.includes("cancel shutdown") ||
+            normalizedCommand.includes("cancel restart");
+
+        if (localCommand) {
+
+            try {
+
+                const localResponse = await fetch(
+                    "http://127.0.0.1:5050/command",
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            session_id: auraSessionId,
+                            username: auraUsername,
+                            command: command
+                        })
+                    }
+                );
+
+                const localData =
+                    await localResponse.json();
+
+                console.log(
+                    "LOCAL AGENT:",
+                    localData
+                );
+
+                if (localData.username) {
+
+                    auraUsername =
+                        localData.username;
+
+                    localStorage.setItem(
+                        "aura_username",
+                        auraUsername
+                    );
                 }
-            );
 
-            const localData =
-                await localResponse.json();
-
-            console.log(
-                "LOCAL AGENT:",
-                localData
-            );
-
-            if (localData.username) {
-                auraUsername = localData.username;
-                localStorage.setItem(
-                    "aura_username",
-                    auraUsername
-                );
-            }
-
-            if (
-                localResponse.ok &&
-                localData.response
-            ) {
-
-                return String(
+                if (
+                    localResponse.ok &&
                     localData.response
+                ) {
+
+                    return String(
+                        localData.response
+                    );
+                }
+
+            } catch (error) {
+
+                console.log(
+                    "Local Agent unavailable:",
+                    error
                 );
+
             }
-
-        } catch (error) {
-
-            console.log(
-                "Local Agent unavailable:",
-                error
-            );
-
         }
 
         // =====================================================
@@ -1147,7 +1171,7 @@ this.recognition.onerror = (event) => {
 
         const AURA_API =
             window.AURA_API_URL ||
-            "https://aura-ai-ywzs.onrender.com";
+            "https://aura-ai-backend-cl7h.onrender.com";
 
         const response =
             await fetch(

@@ -675,11 +675,15 @@ class AuraAssistant:
             command or ""
         ).lower().strip()
 
-        app_name = re.sub(
-            r"^(open|launch|start|go to|bring up)\s+",
-            "",
+        match = re.match(
+            r"^(open|launch|start|go to|bring up)\s+(.+)$",
             command
-        ).strip()
+        )
+
+        if not match:
+            return None
+
+        app_name = match.group(2).strip()
 
         app_name = re.sub(
             r"\b(the|app|application)$",
@@ -691,7 +695,6 @@ class AuraAssistant:
             return app_name
 
         return None
-
     # =========================================================
     # APP CONFIRMATION
     # =========================================================
