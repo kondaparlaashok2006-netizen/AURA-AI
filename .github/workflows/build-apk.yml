@@ -1,0 +1,205 @@
+name: Build AURA Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout AURA
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK
+        run: |
+          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+
+      - name: Create Android project
+        run: |
+          mkdir -p app/src/main/java/com/aura/ai
+          mkdir -p app/src/main/assets/frontend
+          mkdir -p app/src/main/res/mipmap-hdpi
+
+          cp -r frontend/* app/src/main/assets/frontend/
+
+          cat > settings.gradle <<'EOF'
+          pluginManagement {
+              repositories {
+                  google()
+                  mavenCentral()
+                  gradlePluginPortal()
+              }
+          }
+
+          dependencyResolutionManagement {
+              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+              repositories {
+                  google()
+                  mavenCentral()
+              }
+          }
+
+          rootProject.name = "AURA-AI"
+          include(":app")
+          EOF
+
+          cat > build.gradle <<'EOF'
+          plugins {
+              id 'com.android.application' version '8.6.1' apply false
+          }
+          EOF
+
+          cat > app/build.gradle <<'EOF'
+          plugins {
+              id 'com.android.application'
+          }
+
+          android {
+              namespace 'com.aura.ai'
+              compileSdk 35
+
+              defaultConfig {
+                  applicationId 'com.aura.ai'
+                  minSdk 23
+                  targetSdk 35
+                  versionCode 1
+                  versionName '1.0'
+              }
+          }
+          EOF
+
+          cat > app/src/main/AndroidManifest.xml <<'EOF'
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+              <uses-permission android:name="android.permission.INTERNET"/>
+              <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+
+              <application
+                  android:theme="@style/AppTheme"
+                  android:label="AURA AI"
+                  android:usesCleartextTraffic="true"
+                  android:hardwareAccelerated="true">
+
+                  <activity
+                      android:name=".MainActivity"
+                      android:screenOrientation="portrait"
+                      android:exported="true">
+
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN"/>
+                          <category android:name="android.intent.category.LAUNCHER"/>
+                      </intent-filter>
+
+                  </activity>
+              </application>
+          </manifest>
+          EOF
+
+          mkdir -p app/src/main/res/values
+
+          cat > app/src/main/res/values/styles.xml <<'EOF'
+          <resources>
+              <style name="AppTheme" parent="android:style/Theme.Material.NoActionBar">
+                  <item name="android:fontFamily">sans</item>
+                  <item name="android:windowFullscreen">true</item>
+                  <item name="android:colorAccent">#28d7ff</item>
+                  <item name="android:navigationBarColor">#080b12</item>
+                  <item name="android:statusBarColor">#080b12</item>
+              </style>
+          </resources>
+          EOF
+
+          cat > app/src/main/java/com/aura/ai/MainActivity.java <<'EOF'
+          package com.aura.ai;
+
+          import android.Manifest;
+          import android.app.Activity;
+          import android.os.Bundle;
+          import android.webkit.PermissionRequest;
+          import android.webkit.WebChromeClient;
+          import android.webkit.WebSettings;
+          import android.webkit.WebView;
+          import android.webkit.WebViewClient;
+          import android.content.pm.PackageManager;
+
+          public class MainActivity extends Activity {
+
+              private WebView webView;
+
+              @Override
+              protected void onCreate(Bundle savedInstanceState) {
+                  super.onCreate(savedInstanceState);
+
+                  webView = new WebView(this);
+                  setContentView(webView);
+
+                  WebSettings settings = webView.getSettings();
+                  settings.setJavaScriptEnabled(true);
+                  settings.setDomStorageEnabled(true);
+                  settings.setDatabaseEnabled(true);
+                  settings.setMediaPlaybackRequiresUserGesture(false);
+                  settings.setAllowFileAccess(true);
+                  settings.setAllowContentAccess(true);
+
+                  webView.setWebViewClient(new WebViewClient());
+
+                  webView.setWebChromeClient(new WebChromeClient() {
+                      @Override
+                      public void onPermissionRequest(final PermissionRequest request) {
+                          runOnUiThread(() -> request.grant(request.getResources()));
+                      }
+                  });
+
+                  if (android.os.Build.VERSION.SDK_INT >= 23 &&
+                      checkSelfPermission(Manifest.permission.RECORD_AUDIO)
+                          != PackageManager.PERMISSION_GRANTED) {
+                      requestPermissions(
+                          new String[]{Manifest.permission.RECORD_AUDIO},
+                          100
+                      );
+                  }
+
+                  webView.loadUrl("file:///android_asset/frontend/index.html");
+              }
+
+              @Override
+              public void onBackPressed() {
+                  if (webView.canGoBack()) {
+                      webView.goBack();
+                  } else {
+                      super.onBackPressed();
+                  }
+              }
+          }
+          EOF
+
+      - name: Download Gradle
+        run: |
+          wget -q https://services.gradle.org/distributions/gradle-8.10.2-bin.zip
+          unzip -q gradle-8.10.2-bin.zip
+          export PATH="$PWD/gradle-8.10.2/bin:$PATH"
+          gradle wrapper --gradle-version 8.10.2
+
+      - name: Build APK
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: Upload AURA APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: AURA-AI-APK
+          path: app/build/outputs/apk/debug/app-debug.apk
