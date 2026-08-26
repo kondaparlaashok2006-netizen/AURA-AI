@@ -3,6 +3,13 @@
 // ============================================================
 
 let auraUsername = localStorage.getItem("aura_username") || "";
+const AURA_USER_COLORS = {
+    default: "#55c7ff",
+    ashuk: "#8b5cf6",
+    ashok: "#22d3ee"
+};
+
+
 
 let auraSessionId =
     localStorage.getItem("aura_session_id");
@@ -15,7 +22,250 @@ if (!auraSessionId) {
         auraSessionId
     );
 }
+function applyUserAuraColor(username) {
+    const root = document.documentElement;
 
+    const key =
+        "aura_interface_color_" +
+        (
+            username &&
+            String(username).trim()
+        )
+            ? String(username).trim().toLowerCase()
+            : "guest";
+
+    const themes = {
+        blue: {
+            color: "#28d7ff",
+            glow: "#28d7ff99",
+            soft: "#28d7ff33",
+            hue: "0deg"
+        },
+        red: {
+            color: "#ff3b4f",
+            glow: "#ff3b4f99",
+            soft: "#ff3b4f33",
+            hue: "-170deg"
+        },
+        green: {
+            color: "#00f06a",
+            glow: "#00f06a99",
+            soft: "#00f06a33",
+            hue: "-65deg"
+        },
+        pink: {
+           color: "#ff4fd8",
+           glow: "#ff4fd899",
+           soft: "#ff4fd833",
+           hue: "0deg"
+        }
+    };
+
+    const saved =
+        localStorage.getItem(key);
+
+    const theme =
+        themes[saved] || themes.blue;
+
+    root.style.setProperty(
+        "--aura-user-color",
+        theme.color
+    );
+
+    root.style.setProperty(
+        "--aura-user-glow",
+        theme.glow
+    );
+
+    root.style.setProperty(
+        "--aura-user-soft",
+        theme.soft
+    );
+
+    root.style.setProperty(
+        "--aura-hue",
+        theme.hue
+    );
+}
+// ============================================================
+// AURA COLOR — FINAL WORKING VERSION
+// Accepts both color names AND HEX values
+// ============================================================
+
+window.auraSetColor = function (color) {
+
+    const themes = {
+
+        blue: {
+            color: "#28d7ff",
+            glow: "#28d7ff99",
+            soft: "#28d7ff33",
+            hue: "0deg"
+        },
+
+        red: {
+            color: "#ff4055",
+            glow: "#ff405599",
+            soft: "#ff405533",
+            hue: "-165deg"
+        },
+
+        green: {
+            color: "#19ed78",
+            glow: "#19ed7899",
+            soft: "#19ed7833",
+            hue: "-65deg"
+        },
+
+        pink: {
+            color: "#ff4fd8",
+            glow: "#ff4fd899",
+            soft: "#ff4fd833",
+            hue: "0deg"
+        }
+    };
+
+    // If HEX was supplied, convert it to the theme name
+    const hexToTheme = {
+        "#28d7ff": "blue",
+        "#ef4444": "red",
+        "#ff4055": "red",
+        "#22c55e": "green",
+        "#19ed78": "green",
+        "#ec4899": "pink",
+        "#ff4fd8": "pink"
+    };
+
+    color = String(color || "").toLowerCase().trim();
+
+    const themeName =
+        themes[color]
+            ? color
+            : hexToTheme[color];
+
+    const theme =
+        themes[themeName];
+
+    if (!theme) {
+        console.warn("AURA: unsupported color:", color);
+        return false;
+    }
+
+    const root =
+        document.documentElement;
+
+    // Apply CSS variables
+    root.style.setProperty(
+        "--aura-user-color",
+        theme.color
+    );
+
+    root.style.setProperty(
+        "--aura-user-glow",
+        theme.glow
+    );
+
+    root.style.setProperty(
+        "--aura-user-soft",
+        theme.soft
+    );
+
+    root.style.setProperty(
+        "--aura-hue",
+        theme.hue
+    );
+
+    // Save selected color
+    const user =
+        auraUsername ||
+        "guest";
+
+    localStorage.setItem(
+        "aura_interface_color_" +
+        user.trim().toLowerCase(),
+        themeName
+    );
+
+    localStorage.setItem(
+        "aura_current_color",
+        themeName
+    );
+
+    // Force repaint
+    root.dataset.auraColor =
+        themeName;
+
+    // Update existing particles immediately
+    document
+        .querySelectorAll(".aura-particle")
+        .forEach(particle => {
+
+            particle.style.setProperty(
+                "--aura-particle-color",
+                theme.color
+            );
+
+            particle.style.filter =
+                `brightness(1.4)
+                 drop-shadow(
+                    0 0 12px ${theme.color}
+                 )`;
+        });
+
+    console.log(
+        "AURA COLOR CHANGED:",
+        themeName,
+        theme.color
+    );
+
+    return true;
+};
+/* =========================================================
+   AURA LOCAL MEMORY
+   ========================================================= */
+
+function auraRemember(text) {
+
+    const memories =
+        JSON.parse(
+            localStorage.getItem(
+                "aura_memories"
+            ) || "[]"
+        );
+
+    memories.push({
+        text: String(text).trim(),
+        time: Date.now()
+    });
+
+    localStorage.setItem(
+        "aura_memories",
+        JSON.stringify(memories)
+    );
+}
+
+
+function auraRecall() {
+
+    const memories =
+        JSON.parse(
+            localStorage.getItem(
+                "aura_memories"
+            ) || "[]"
+        );
+
+    if (!memories.length) {
+
+        return (
+            "I don't have any saved memories yet."
+        );
+    }
+
+    return memories
+        .slice(-10)
+        .map(memory => memory.text)
+        .join(". ");
+}
 class AuraVoiceController {
 
     constructor() {
@@ -91,6 +341,7 @@ class AuraVoiceController {
         this.updateMicUI(false);
         this.updateContinuousUI(false);
 
+        applyUserAuraColor(auraUsername);
         console.log(
             "AURA VOICE SYSTEM READY"
         );
@@ -796,56 +1047,212 @@ this.recognition.onerror = (event) => {
     // =========================================================
     // PROCESS COMMAND
     // =========================================================
-    handleColorCommand(command) {
+   handleColorCommand(command) {
 
     const text =
         String(command || "")
             .toLowerCase()
             .trim();
 
-    const match =
-        text.match(
-            /(?:change|set|make)\s+(?:your\s+|the\s+|aura\s+)?(?:interface\s+)?color\s+(?:to\s+)?([a-z]+)/
-        );
+    /*
+     * Supports:
+     *
+     * change color to red
+     * change colour to red
+     * color to red
+     * colour to red
+     * change interface color to pink
+     * change interface colour to green
+     */
+
+    const match = text.match(
+        /(?:change\s+)?(?:the\s+)?(?:interface\s+)?colou?r\s+(?:to\s+)?([a-z]+)/
+    );
 
     if (!match) {
         return null;
     }
 
+
     const colors = {
+
         blue: "#28d7ff",
-        cyan: "#28d7ff",
-        purple: "#a855f7",
-        violet: "#8b5cf6",
-        pink: "#ec4899",
+
         red: "#ef4444",
-        orange: "#f97316",
-        yellow: "#eab308",
+
         green: "#22c55e",
-        lime: "#84cc16",
-        white: "#ffffff"
+
+        pink: "#ec4899"
+
     };
 
+
+    const requestedColor =
+        match[1];
+
+
     const color =
-        colors[match[1]];
+        colors[requestedColor];
+
+
+    /* =========================
+       UNSUPPORTED COLOR
+    ========================== */
 
     if (!color) {
+
         return (
-            `I don't have a preset for ${match[1]} yet.`
+            "I don't have that color. " +
+            "I currently support blue, red, green, and pink."
         );
     }
 
-    if (window.auraSetColor) {
+
+    /* =========================
+       APPLY COLOR
+    ========================== */
+
+    if (
+        typeof window.auraSetColor ===
+        "function"
+    ) {
+
         window.auraSetColor(color);
+
     }
 
+
+    /* =========================
+       FORCE CSS VARIABLES
+       ========================== */
+
+    const root =
+        document.documentElement;
+
+
+    root.style.setProperty(
+        "--aura-user-color",
+        color
+    );
+
+
+    root.style.setProperty(
+        "--aura-user-glow",
+        color + "99"
+    );
+
+
+    root.style.setProperty(
+        "--aura-user-soft",
+        color + "33"
+    );
+
+
+    /* =========================
+       SAVE COLOR
+    ========================== */
+
+    localStorage.setItem(
+        "aura_current_color",
+        requestedColor
+    );
+
+
+    console.log(
+        "AURA COLOR CHANGED:",
+        requestedColor
+    );
+
+
     return (
-        `I've changed my interface color to ${match[1]}.`
+        `I've changed the interface color to ${requestedColor}.`
     );
 }
+    
     async processCommand(
         command
     ) {
+/* =========================================================
+   VOICE ZOOM COMMANDS
+   ========================================================= */
+
+if (
+    /\b(zoom\s*in|zoomin)\b/i.test(command)
+) {
+
+    if (
+        typeof window.auraZoomIn ===
+        "function"
+    ) {
+
+        window.auraZoomIn();
+
+    }
+
+    this.showResponse(
+        "Zooming in."
+    );
+
+    return;
+}
+
+
+if (
+    /\b(zoom\s*out|zoomout)\b/i.test(command)
+) {
+
+    if (
+        typeof window.auraZoomOut ===
+        "function"
+    ) {
+
+        window.auraZoomOut();
+
+    }
+
+    this.showResponse(
+        "Zooming out."
+    );
+
+    return;
+}
+/* =========================================================
+   MEMORY COMMANDS
+   ========================================================= */
+
+const rememberMatch =
+    command.match(
+        /^(?:remember|remember that|remember me that)\s+(.+)/i
+    );
+
+
+if (rememberMatch) {
+
+    auraRemember(
+        rememberMatch[1]
+    );
+
+    this.showResponse(
+        "I'll remember that."
+    );
+
+    return;
+}
+
+
+if (
+    /^(?:what do you remember|what do you remember about|recall my memories)/i
+        .test(command)
+) {
+
+    this.showResponse(
+        auraRecall()
+    );
+
+    return;
+}
+        command = String(command || "").trim();
+
         const colorCommand =
             this.handleColorCommand(command);
 
@@ -1121,6 +1528,32 @@ this.recognition.onerror = (event) => {
     // =========================================================
 
     async sendCommand(command) {
+        command = String(command || "").trim();
+
+if (
+    command.toLowerCase() === "lock screen" ||
+    command.toLowerCase() === "lock my screen" ||
+    command.toLowerCase() === "lock the screen" ||
+    command.toLowerCase() === "lock computer" ||
+    command.toLowerCase() === "lock my computer"
+) {
+    try {
+        await fetch("http://127.0.0.1:5050/command", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                command: command
+            })
+        });
+
+        return "Locking your screen.";
+    } catch (error) {
+        console.error("LOCK COMMAND ERROR:", error);
+        return "I couldn't lock the screen.";
+    }
+}
 
         command = command.trim();
 
@@ -1129,6 +1562,30 @@ this.recognition.onerror = (event) => {
         }
 
         console.log("AURA COMMAND:", command);
+/* =========================================================
+   LOCAL TIME COMMAND
+   ========================================================= */
+
+const timeResponse =
+    handleLocalTimeCommand(command);
+
+if (timeResponse) {
+
+    console.log(
+        "AURA LOCAL TIME RESPONSE:",
+        timeResponse
+    );
+
+    this.showResponse(
+        timeResponse
+    );
+
+    await this.speak(
+        timeResponse
+    );
+
+    return timeResponse;
+}
 
         // =====================================================
         // LOCAL WINDOWS AGENT
@@ -1213,6 +1670,47 @@ this.recognition.onerror = (event) => {
 
             }
         }
+        /* =========================================================
+   AURA — LOCAL TIME COMMAND
+   ========================================================= */
+
+function handleLocalTimeCommand(command) {
+
+    const text = String(command || "")
+        .toLowerCase()
+        .trim();
+
+    const isTimeCommand =
+    /\bwhat(?:'s| is)?\s+(?:the\s+)?time\b/.test(text) ||
+    /\bcurrent\s+time\b/.test(text) ||
+    /\btell\s+me\s+the\s+time\b/.test(text) ||
+    /\btime\s+now\b/.test(text);
+    if (!isTimeCommand) {
+        return null;
+    }
+
+
+    const now = new Date();
+
+
+    const time = now.toLocaleTimeString(
+        "en-IN",
+        {
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true
+        }
+    );
+
+
+    console.log(
+        "AURA LOCAL TIME:",
+        time
+    );
+
+
+    return `The current time is ${time}.`;
+}
 
         // =====================================================
         // WEB ACTION
@@ -1769,6 +2267,20 @@ this.recognition.onerror = (event) => {
         this.commandElement.classList.add(
             "updated"
         );
+        setTimeout(() => {
+
+    const block =
+        this.commandElement.closest(
+            ".message-block"
+        );
+
+    if (block) {
+        block.classList.add(
+            "completed"
+        );
+    }
+
+}, 5000);
     }
 
     // =========================================================
@@ -1833,6 +2345,20 @@ this.recognition.onerror = (event) => {
         this.responseElement.classList.add(
             "updated"
         );
+       setTimeout(() => {
+
+    const block =
+        this.responseElement.closest(
+            ".message-block"
+        );
+
+    if (block) {
+        block.classList.add(
+            "completed"
+        );
+    }
+
+}, 5000);
     }
 
     // =========================================================
@@ -2262,12 +2788,17 @@ this.recognition.onerror = (event) => {
                 0.45 +
                 depth * 1.15;
 
-            particle.element.style.filter =
-                `brightness(${brightness})
-                    drop-shadow(
-                     0 0 ${glow}px
-                       rgba(85, 199, 255, 0.75)
-     )`;
+            const auraColor =
+    getComputedStyle(document.documentElement)
+        .getPropertyValue("--aura-user-color")
+        .trim() || "#28d7ff";
+
+particle.element.style.filter =
+    `brightness(${brightness})
+        drop-shadow(
+            0 0 ${glow}px
+            ${auraColor}
+        )`;
         }
 
         system.animationFrame =
@@ -2699,49 +3230,6 @@ document.addEventListener(
 
 
 /* =========================================================
-   AURA CURSOR ENERGY
-   ========================================================= */
-
-(function initAuraCursor() {
-
-    const glow =
-        document.createElement("div");
-
-    glow.className =
-        "aura-cursor-glow";
-
-    document.body.appendChild(glow);
-
-    let timeout;
-
-    document.addEventListener(
-        "mousemove",
-        (event) => {
-
-            glow.style.left =
-                `${event.clientX}px`;
-
-            glow.style.top =
-                `${event.clientY}px`;
-
-            glow.classList.add(
-                "visible"
-            );
-
-            clearTimeout(timeout);
-
-            timeout = setTimeout(() => {
-
-                glow.classList.remove(
-                    "visible"
-                );
-
-            }, 350);
-        }
-    );
-
-})();
-/* =========================================================
    AURA — REAL 3D HOLOGRAM GLOBE
    ========================================================= */
 
@@ -2756,21 +3244,25 @@ document.addEventListener(
 
 function startAuraHolographicEarth() {
 
-    const canvas =
-        document.getElementById("auraGlobe");
+    const canvas = document.getElementById("auraGlobe");
 
-    if (!canvas) {
-        return;
-    }
+    if (!canvas) return;
 
-    const ctx =
-        canvas.getContext("2d");
+    const ctx = canvas.getContext("2d");
 
-    if (!ctx) {
-        return;
-    }
+    if (!ctx) return;
 
-    const SIZE = 520;
+
+    /* =========================================================
+       AURA HOLOGRAPHIC EARTH
+       Natural / detailed / Africa centered
+       ========================================================= */
+
+    const mobile =
+        window.innerWidth <= 720;
+
+    const SIZE =
+        mobile ? 294 : 552;
 
     canvas.width = SIZE;
     canvas.height = SIZE;
@@ -2781,174 +3273,94 @@ function startAuraHolographicEarth() {
     const cx = W / 2;
     const cy = H / 2;
 
-    const R = 175;
+    const R =
+        mobile ? 132 : 248;
 
-    let rotation = 0;
+
+    /*
+       Start with Africa / Europe facing the user.
+       Keep rotation extremely slow so the reference
+       orientation remains recognizable.
+    */
+
+    let rotation = 0.02;
 
 
-    /* =====================================================
-       EARTH LAND STRUCTURE
-       Longitude / Latitude
-       ===================================================== */
+    /* =========================================================
+       LAND DATA
+       ========================================================= */
 
     const continents = [
 
-        /* North America */
+        /* NORTH AMERICA */
         [
-            [-168, 72],
-            [-145, 70],
-            [-130, 67],
-            [-120, 60],
-            [-112, 58],
-            [-105, 50],
-            [-96, 50],
-            [-90, 48],
-            [-83, 46],
-            [-78, 40],
-            [-74, 43],
-            [-67, 47],
-            [-60, 52],
-            [-63, 58],
-            [-76, 60],
-            [-90, 68],
-            [-110, 72],
-            [-135, 74],
-            [-168, 72]
+            [-168,72],[-150,70],[-135,72],[-120,65],
+            [-112,58],[-103,55],[-96,50],[-88,48],
+            [-82,45],[-78,40],[-74,43],[-68,47],
+            [-62,52],[-67,58],[-80,61],[-92,68],
+            [-110,72],[-135,74],[-168,72]
         ],
 
-        /* Central America */
+        /* SOUTH AMERICA */
         [
-            [-90, 20],
-            [-86, 17],
-            [-84, 12],
-            [-80, 10],
-            [-77, 8],
-            [-79, 5],
-            [-84, 8],
-            [-88, 14],
-            [-90, 20]
+            [-81,12],[-72,10],[-63,7],[-54,3],
+            [-48,-3],[-44,-12],[-46,-22],
+            [-52,-32],[-57,-42],[-63,-52],
+            [-69,-55],[-73,-47],[-74,-36],
+            [-77,-25],[-79,-12],[-81,12]
         ],
 
-        /* South America */
+        /* EUROPE */
         [
-            [-81, 12],
-            [-74, 9],
-            [-66, 7],
-            [-58, 5],
-            [-51, 2],
-            [-47, -5],
-            [-44, -15],
-            [-47, -24],
-            [-52, -32],
-            [-57, -42],
-            [-62, -52],
-            [-68, -55],
-            [-72, -48],
-            [-73, -38],
-            [-76, -28],
-            [-79, -18],
-            [-81, -5],
-            [-81, 12]
+            [-11,35],[-5,43],[3,43],[10,46],
+            [18,48],[25,54],[35,58],[32,65],
+            [20,68],[8,63],[-2,57],[-10,50],
+            [-11,35]
         ],
 
-        /* Europe */
+        /* AFRICA */
         [
-            [-10, 36],
-            [-5, 43],
-            [5, 43],
-            [12, 47],
-            [20, 48],
-            [28, 54],
-            [35, 58],
-            [30, 65],
-            [20, 68],
-            [8, 63],
-            [-2, 58],
-            [-10, 52],
-            [-10, 36]
+            [-17,35],[-8,37],[2,36],[10,35],
+            [20,32],[28,28],[34,20],[38,10],
+            [42,0],[38,-10],[34,-20],
+            [28,-29],[22,-34],[14,-35],
+            [7,-31],[1,-25],[-4,-18],
+            [-8,-8],[-13,5],[-17,20],[-17,35]
         ],
 
-        /* Africa */
+        /* ASIA */
         [
-            [-17, 35],
-            [-5, 37],
-            [8, 35],
-            [20, 32],
-            [32, 25],
-            [38, 12],
-            [42, 0],
-            [35, -12],
-            [30, -23],
-            [23, -34],
-            [14, -35],
-            [5, -30],
-            [-2, -20],
-            [-8, -5],
-            [-14, 10],
-            [-17, 35]
+            [28,70],[45,72],[60,75],[78,74],
+            [95,70],[112,66],[128,60],[145,54],
+            [160,48],[170,40],[158,34],
+            [145,31],[132,27],[118,22],
+            [104,20],[91,23],[78,28],
+            [65,35],[52,42],[42,50],
+            [34,60],[28,70]
         ],
 
-        /* Asia */
+        /* INDIA */
         [
-            [30, 70],
-            [48, 72],
-            [65, 75],
-            [85, 72],
-            [105, 68],
-            [125, 62],
-            [145, 55],
-            [160, 50],
-            [170, 42],
-            [150, 35],
-            [135, 30],
-            [120, 25],
-            [105, 20],
-            [90, 22],
-            [75, 28],
-            [62, 35],
-            [50, 42],
-            [40, 50],
-            [30, 60],
-            [30, 70]
+            [68,25],[76,30],[82,28],[88,22],
+            [87,14],[82,8],[76,10],[72,18],
+            [68,25]
         ],
 
-        /* India / Southeast Asia */
+        /* AUSTRALIA */
         [
-            [68, 25],
-            [77, 30],
-            [85, 27],
-            [90, 20],
-            [87, 10],
-            [80, 7],
-            [75, 15],
-            [68, 25]
-        ],
-
-        /* Australia */
-        [
-            [112, -11],
-            [125, -12],
-            [140, -15],
-            [153, -20],
-            [155, -29],
-            [145, -38],
-            [132, -40],
-            [118, -35],
-            [112, -25],
-            [112, -11]
+            [112,-11],[125,-12],[138,-14],
+            [151,-19],[155,-28],[150,-35],
+            [140,-40],[128,-39],[117,-34],
+            [112,-25],[112,-11]
         ]
-
     ];
 
 
-    /* =====================================================
-       PROJECT LAT/LON → 3D SPHERE
-       ===================================================== */
+    /* =========================================================
+       PROJECT LAT/LON TO SPHERE
+       ========================================================= */
 
-    function project(
-        lon,
-        lat
-    ) {
+    function project(lon, lat) {
 
         const lonRad =
             lon * Math.PI / 180;
@@ -2968,8 +3380,6 @@ function startAuraHolographicEarth() {
             Math.cos(lonRad);
 
 
-        /* Rotate Earth around Y axis */
-
         const rx =
             x * Math.cos(rotation) +
             z * Math.sin(rotation);
@@ -2980,38 +3390,90 @@ function startAuraHolographicEarth() {
 
 
         return {
-
-            x:
-                cx + rx * R,
-
-            y:
-                cy - y * R,
-
-            z:
-                rz
-
+            x: cx + rx * R,
+            y: cy - y * R,
+            z: rz
         };
-
     }
 
 
-    /* =====================================================
-       DRAW GRID
-       ===================================================== */
+    /* =========================================================
+       BACKGROUND GLOW INSIDE EARTH
+       ========================================================= */
+
+    function drawEarthGlow() {
+
+        const glow =
+            ctx.createRadialGradient(
+                cx - R * 0.25,
+                cy - R * 0.30,
+                R * 0.05,
+                cx,
+                cy,
+                R * 1.15
+            );
+
+        glow.addColorStop(
+            0,
+            "rgba(220,255,40,0.24)"
+        );
+
+        glow.addColorStop(
+            0.45,
+            "rgba(150,220,35,0.18)"
+        );
+
+        glow.addColorStop(
+            0.78,
+            "rgba(80,180,40,0.08)"
+        );
+
+        glow.addColorStop(
+            1,
+            "rgba(0,0,0,0)"
+        );
+
+
+        ctx.beginPath();
+
+        ctx.arc(
+            cx,
+            cy,
+            R * 1.08,
+            0,
+            Math.PI * 2
+        );
+
+        ctx.fillStyle = glow;
+
+        ctx.fill();
+    }
+
+
+    /* =========================================================
+       LATITUDE / LONGITUDE GRID
+       ========================================================= */
 
     function drawGrid() {
 
         ctx.save();
 
-        ctx.lineWidth = 0.65;
+        ctx.beginPath();
 
-        ctx.shadowBlur = 7;
+        ctx.arc(
+            cx,
+            cy,
+            R,
+            0,
+            Math.PI * 2
+        );
 
-        ctx.shadowColor =
-            "rgba(45,210,255,0.65)";
+        ctx.clip();
 
 
-        /* Latitude */
+        /*
+           Latitude
+        */
 
         for (
             let lat = -75;
@@ -3019,14 +3481,14 @@ function startAuraHolographicEarth() {
             lat += 15
         ) {
 
-            let first = true;
-
             ctx.beginPath();
+
+            let started = false;
 
             for (
                 let lon = -180;
                 lon <= 180;
-                lon += 3
+                lon += 2
             ) {
 
                 const p =
@@ -3037,14 +3499,14 @@ function startAuraHolographicEarth() {
 
                 if (p.z > 0) {
 
-                    if (first) {
+                    if (!started) {
 
                         ctx.moveTo(
                             p.x,
                             p.y
                         );
 
-                        first = false;
+                        started = true;
 
                     } else {
 
@@ -3052,26 +3514,23 @@ function startAuraHolographicEarth() {
                             p.x,
                             p.y
                         );
-
                     }
-
-                } else {
-
-                    first = true;
-
                 }
-
             }
 
             ctx.strokeStyle =
-                "rgba(55,210,255,0.42)";
+                "rgba(180,235,70,0.24)";
+
+            ctx.lineWidth =
+                mobile ? 0.45 : 0.7;
 
             ctx.stroke();
-
         }
 
 
-        /* Longitude */
+        /*
+           Longitude
+        */
 
         for (
             let lon = -180;
@@ -3079,14 +3538,14 @@ function startAuraHolographicEarth() {
             lon += 15
         ) {
 
-            let first = true;
-
             ctx.beginPath();
+
+            let started = false;
 
             for (
                 let lat = -90;
                 lat <= 90;
-                lat += 3
+                lat += 2
             ) {
 
                 const p =
@@ -3097,14 +3556,14 @@ function startAuraHolographicEarth() {
 
                 if (p.z > 0) {
 
-                    if (first) {
+                    if (!started) {
 
                         ctx.moveTo(
                             p.x,
                             p.y
                         );
 
-                        first = false;
+                        started = true;
 
                     } else {
 
@@ -3112,234 +3571,398 @@ function startAuraHolographicEarth() {
                             p.x,
                             p.y
                         );
-
                     }
-
-                } else {
-
-                    first = true;
-
                 }
-
             }
 
             ctx.strokeStyle =
-                "rgba(40,190,255,0.36)";
+                "rgba(160,225,65,0.22)";
+
+            ctx.lineWidth =
+                mobile ? 0.45 : 0.7;
 
             ctx.stroke();
-
         }
 
-        ctx.restore();
 
+        ctx.restore();
     }
 
 
-    /* =====================================================
-       DRAW CONTINENTS
-       ===================================================== */
+    /* =========================================================
+       NATURAL LAND MASSES
+       ========================================================= */
 
     function drawContinents() {
 
         ctx.save();
-
-        ctx.lineWidth = 1.7;
-
-        ctx.shadowBlur = 14;
-
-        ctx.shadowColor =
-            "rgba(65,225,255,0.95)";
-
-
-        for (
-            const continent
-            of continents
-        ) {
-
-            for (
-                let i = 0;
-                i < continent.length - 1;
-                i++
-            ) {
-
-                const a =
-                    project(
-                        continent[i][0],
-                        continent[i][1]
-                    );
-
-                const b =
-                    project(
-                        continent[i + 1][0],
-                        continent[i + 1][1]
-                    );
-
-
-                if (
-                    a.z > 0 &&
-                    b.z > 0
-                ) {
-
-                    ctx.beginPath();
-
-                    ctx.moveTo(
-                        a.x,
-                        a.y
-                    );
-
-                    ctx.lineTo(
-                        b.x,
-                        b.y
-                    );
-
-                    ctx.strokeStyle =
-                        "rgba(105,235,255,0.95)";
-
-                    ctx.stroke();
-
-                }
-
-            }
-
-        }
-
-        ctx.restore();
-
-    }
-
-
-    /* =====================================================
-       EARTH CITY LIGHTS
-       ===================================================== */
-
-    const lights = [];
-
-    for (
-        let i = 0;
-        i < 260;
-        i++
-    ) {
-
-        lights.push({
-
-            lon:
-                -180 +
-                Math.random() * 360,
-
-            lat:
-                -55 +
-                Math.random() * 110
-
-        });
-
-    }
-
-
-    function drawLights() {
-
-        ctx.save();
-
-        for (
-            const light
-            of lights
-        ) {
-
-            const p =
-                project(
-                    light.lon,
-                    light.lat
-                );
-
-            if (p.z > 0.08) {
-
-                const alpha =
-                    0.18 +
-                    p.z * 0.7;
-
-                const size =
-                    0.45 +
-                    p.z * 1.15;
-
-                ctx.beginPath();
-
-                ctx.arc(
-                    p.x,
-                    p.y,
-                    size,
-                    0,
-                    Math.PI * 2
-                );
-
-                ctx.fillStyle =
-                    `rgba(
-                        130,
-                        240,
-                        255,
-                        ${alpha}
-                    )`;
-
-                ctx.shadowBlur = 8;
-
-                ctx.shadowColor =
-                    "rgba(65,220,255,0.95)";
-
-                ctx.fill();
-
-            }
-
-        }
-
-        ctx.restore();
-
-    }
-
-
-    /* =====================================================
-       ATMOSPHERE
-       ===================================================== */
-
-    function drawAtmosphere() {
-
-        const gradient =
-            ctx.createRadialGradient(
-                cx - 42,
-                cy - 45,
-                15,
-                cx,
-                cy,
-                R + 18
-            );
-
-        gradient.addColorStop(
-            0,
-            "rgba(40,190,255,0.08)"
-        );
-
-        gradient.addColorStop(
-            0.7,
-            "rgba(20,130,255,0.10)"
-        );
-
-        gradient.addColorStop(
-            1,
-            "rgba(0,80,255,0)"
-        );
 
         ctx.beginPath();
 
         ctx.arc(
             cx,
             cy,
-            R + 10,
+            R - 1,
             0,
             Math.PI * 2
         );
 
-        ctx.fillStyle =
-            gradient;
+        ctx.clip();
 
-        ctx.fill();
 
+        for (
+            const continent of continents
+        ) {
+
+            const points = [];
+
+            for (
+                const point of continent
+            ) {
+
+                points.push(
+                    project(
+                        point[0],
+                        point[1]
+                    )
+                );
+            }
+
+
+            /* LAND FILL */
+
+            ctx.beginPath();
+
+            let started = false;
+
+            for (
+                const p of points
+            ) {
+
+                if (p.z > 0) {
+
+                    if (!started) {
+
+                        ctx.moveTo(
+                            p.x,
+                            p.y
+                        );
+
+                        started = true;
+
+                    } else {
+
+                        ctx.lineTo(
+                            p.x,
+                            p.y
+                        );
+                    }
+                }
+            }
+
+            ctx.closePath();
+
+            ctx.fillStyle =
+                "rgba(210,245,45,0.10)";
+
+            ctx.fill();
+
+
+            /* COASTLINE */
+
+            ctx.beginPath();
+
+            started = false;
+
+            for (
+                const p of points
+            ) {
+
+                if (p.z > 0) {
+
+                    if (!started) {
+
+                        ctx.moveTo(
+                            p.x,
+                            p.y
+                        );
+
+                        started = true;
+
+                    } else {
+
+                        ctx.lineTo(
+                            p.x,
+                            p.y
+                        );
+                    }
+                }
+            }
+
+            ctx.closePath();
+
+            ctx.strokeStyle =
+                "rgba(225,255,45,0.92)";
+
+            ctx.lineWidth =
+                mobile ? 1 : 1.5;
+
+            ctx.shadowBlur = 10;
+
+            ctx.shadowColor =
+                "rgba(220,255,40,0.9)";
+
+            ctx.stroke();
+        }
+
+
+        ctx.restore();
+    }
+
+
+    /* =========================================================
+       HOLOGRAPHIC TERRAIN / CITY DOTS
+       ========================================================= */
+
+    const dots = [];
+
+    for (
+        let i = 0;
+        i < 650;
+        i++
+    ) {
+
+        dots.push({
+            lon:
+                -180 +
+                Math.random() * 360,
+
+            lat:
+                -65 +
+                Math.random() * 130,
+
+            size:
+                Math.random() *
+                1.25 +
+                0.25
+        });
+    }
+
+
+    function drawDots() {
+
+        ctx.save();
+
+        for (
+            const dot of dots
+        ) {
+
+            const p =
+                project(
+                    dot.lon,
+                    dot.lat
+                );
+
+            if (
+                p.z >
+                0.15
+            ) {
+
+                const alpha =
+                    0.12 +
+                    p.z * 0.65;
+
+                ctx.beginPath();
+
+                ctx.arc(
+                    p.x,
+                    p.y,
+                    dot.size,
+                    0,
+                    Math.PI * 2
+                );
+
+                ctx.fillStyle =
+                    `rgba(
+                        235,
+                        255,
+                        75,
+                        ${alpha}
+                    )`;
+
+                ctx.fill();
+            }
+        }
+
+        ctx.restore();
+    }
+
+
+    /* =========================================================
+       OUTER HOLOGRAM RINGS
+       ========================================================= */
+
+    function drawRings() {
+
+        ctx.save();
+
+        ctx.translate(
+            cx,
+            cy
+        );
+
+
+        for (
+            let i = 0;
+            i < 3;
+            i++
+        ) {
+
+            const ring =
+                R +
+                10 +
+                i * 9;
+
+            ctx.beginPath();
+
+            ctx.ellipse(
+                0,
+                0,
+                ring,
+                ring * 0.98,
+                0,
+                0,
+                Math.PI * 2
+            );
+
+            ctx.strokeStyle =
+                `rgba(
+                    220,
+                    255,
+                    50,
+                    ${0.32 - i * 0.08}
+                )`;
+
+            ctx.lineWidth =
+                i === 0 ? 1.4 : 0.7;
+
+            ctx.setLineDash(
+                i === 1
+                    ? [2, 5]
+                    : []
+            );
+
+            ctx.shadowBlur = 8;
+
+            ctx.shadowColor =
+                "rgba(220,255,40,0.65)";
+
+            ctx.stroke();
+        }
+
+
+        ctx.restore();
+    }
+    /* =========================================================
+   AURA — INVISIBLE GLOBE ZOOM
+   Mouse wheel + trackpad + mobile pinch
+   ========================================================= */
+
+(function initAuraGlobeZoom() {
+
+    const globe =
+        document.getElementById("auraGlobe");
+
+    const core =
+        document.getElementById("auraCore");
+
+    if (!globe || !core) {
+        return;
+    }
+
+
+    let currentZoom = 1;
+    let targetZoom = 1;
+
+    function animateZoom() {
+
+        currentZoom +=
+            (targetZoom - currentZoom) * 0.12;
+
+        core.style.transform =
+            `scale(${currentZoom})`;
+
+        requestAnimationFrame(
+            animateZoom
+        );
+    }
+
+
+    animateZoom();
+
+})();
+/* =========================================================
+   AURA — VOICE GLOBE ZOOM
+   ========================================================= */
+
+window.auraZoomIn = function () {
+
+    const core =
+        document.getElementById("auraCore");
+
+    if (!core) return;
+
+    const current =
+        parseFloat(
+            core.dataset.voiceZoom || "1"
+        );
+
+    const next =
+        Math.min(
+            1.28,
+            current + 0.10
+        );
+
+    core.dataset.voiceZoom =
+        String(next);
+
+    core.style.transform =
+        `scale(${next})`;
+
+};
+
+
+window.auraZoomOut = function () {
+
+    const core =
+        document.getElementById("auraCore");
+
+    if (!core) return;
+
+    const current =
+        parseFloat(
+            core.dataset.voiceZoom || "1"
+        );
+
+    const next =
+        Math.max(
+            0.82,
+            current - 0.10
+        );
+
+    core.dataset.voiceZoom =
+        String(next);
+
+    core.style.transform =
+        `scale(${next})`;
+
+};
+
+    /* =========================================================
+       EARTH EDGE
+       ========================================================= */
+
+    function drawEdge() {
 
         ctx.beginPath();
 
@@ -3352,23 +3975,23 @@ function startAuraHolographicEarth() {
         );
 
         ctx.strokeStyle =
-            "rgba(100,235,255,0.92)";
+            "rgba(220,255,60,0.95)";
 
-        ctx.lineWidth = 2;
+        ctx.lineWidth =
+            mobile ? 1.5 : 2;
 
-        ctx.shadowBlur = 20;
+        ctx.shadowBlur = 18;
 
         ctx.shadowColor =
-            "rgba(45,210,255,0.95)";
+            "rgba(210,255,45,0.95)";
 
         ctx.stroke();
-
     }
 
 
-    /* =====================================================
+    /* =========================================================
        ANIMATION
-       ===================================================== */
+       ========================================================= */
 
     function animate() {
 
@@ -3379,38 +4002,49 @@ function startAuraHolographicEarth() {
             H
         );
 
-        drawAtmosphere();
+
+        drawEarthGlow();
+
+        drawRings();
 
         drawGrid();
 
         drawContinents();
 
-        drawLights();
+        drawDots();
+
+        drawEdge();
 
 
-        /* Full 360° continuous rotation */
-        rotation += 0.0045;
+        /*
+           Very slow movement.
+           Africa remains recognizable instead of
+           rapidly rotating away from the reference.
+        */
+
+        rotation +=
+            mobile
+                ? 0.0008
+                : 0.0012;
+
 
         if (
-            rotation >=
+            rotation >
             Math.PI * 2
         ) {
 
             rotation -=
                 Math.PI * 2;
-
         }
 
 
         requestAnimationFrame(
             animate
         );
-
     }
 
 
     animate();
-
 }
 
 
@@ -3427,158 +4061,222 @@ document.addEventListener(
    AURA — PER USER INTERFACE COLOR
    ========================================================= */
 
-(function initAuraTheme() {
+/* =========================================================
+   AURA — 3 USER COLORS ONLY
+   BLUE / RED / GREEN
+   PER-USER SAVED THEME
+   ========================================================= */
 
-    const DEFAULT_COLOR = "#28d7ff";
 
-    function getUserKey() {
+/* =========================================================
+   AURA — SMOOTH GLOBE ZOOM
+   NO VISIBLE ZOOM BUTTONS
+   ========================================================= */
 
-        const username =
-            localStorage.getItem(
-                "aura_username"
-            );
+(function initAuraZoom() {
 
-        return (
-            username &&
-            username.trim()
-        )
-            ? username.trim().toLowerCase()
-            : "guest";
+    const globe =
+        document.getElementById("auraGlobe");
+
+    const core =
+        document.getElementById("auraCore");
+
+    if (!globe || !core) {
+        return;
     }
 
-    function getColorKey() {
 
-        return (
-            "aura_interface_color_" +
-            getUserKey()
+    let zoom = 1;
+
+    const MIN_ZOOM = 0.82;
+    const MAX_ZOOM = 1.28;
+
+    let targetZoom = 1;
+    window.auraZoomIn = function () {
+
+    targetZoom =
+        Math.min(
+            MAX_ZOOM,
+            targetZoom + 0.10
+        );
+
+};
+
+
+window.auraZoomOut = function () {
+
+    targetZoom =
+        Math.max(
+            MIN_ZOOM,
+            targetZoom - 0.10
+        );
+
+};
+
+    /* -----------------------------------------
+       SMOOTH ANIMATION
+    ----------------------------------------- */
+
+    function animateZoom() {
+
+        zoom +=
+            (targetZoom - zoom) * 0.12;
+
+
+        core.style.transform =
+            `scale(${zoom})`;
+
+
+        requestAnimationFrame(
+            animateZoom
         );
     }
 
-    function applyColor(color) {
 
-        if (!/^#[0-9a-fA-F]{6}$/.test(color)) {
-            color = DEFAULT_COLOR;
+    animateZoom();
+
+
+    /* -----------------------------------------
+       DESKTOP MOUSE WHEEL
+    ----------------------------------------- */
+
+    core.addEventListener(
+        "wheel",
+        event => {
+
+            event.preventDefault();
+
+
+            const direction =
+                event.deltaY > 0
+                    ? -1
+                    : 1;
+
+
+            targetZoom +=
+                direction * 0.06;
+
+
+            targetZoom =
+                Math.max(
+                    MIN_ZOOM,
+                    Math.min(
+                        MAX_ZOOM,
+                        targetZoom
+                    )
+                );
+
+        },
+        {
+            passive: false
         }
+    );
 
-        document.documentElement.style.setProperty(
-            "--aura-user-color",
-            color
-        );
 
-        document.documentElement.style.setProperty(
-            "--aura-user-glow",
-            color + "99"
-        );
+    /* -----------------------------------------
+       MOBILE PINCH
+    ----------------------------------------- */
 
-        document.documentElement.style.setProperty(
-            "--aura-user-soft",
-            color + "33"
-        );
-        const hueMap = {
-            "#28d7ff": "0deg",
-            "#a855f7": "55deg",
-            "#8b5cf6": "50deg",
-            "#ec4899": "140deg",
-            "#ef4444": "-190deg",
-            "#f97316": "-160deg",
-            "#eab308": "-140deg",
-            "#22c55e": "-70deg",
-            "#84cc16": "-80deg",
-            "#ffffff": "0deg"
-        };
+    let pinchStart = null;
 
-        document.documentElement.style.setProperty(
-            "--aura-hue",
-            hueMap[color.toLowerCase()] || "0deg"
-        );
-    }
 
-    function loadColor() {
+    core.addEventListener(
+        "touchstart",
+        event => {
 
-        const saved =
-            localStorage.getItem(
-                getColorKey()
-            );
+            if (
+                event.touches.length !== 2
+            ) {
+                return;
+            }
 
-        applyColor(
-            saved || DEFAULT_COLOR
-        );
-    }
 
-    function saveColor(color) {
+            const dx =
+                event.touches[0].clientX -
+                event.touches[1].clientX;
 
-        localStorage.setItem(
-            getColorKey(),
-            color
-        );
 
-        applyColor(color);
-    }
+            const dy =
+                event.touches[0].clientY -
+                event.touches[1].clientY;
 
-    window.auraSetColor =
-        function(color) {
 
-            saveColor(color);
+            pinchStart =
+                Math.hypot(dx, dy);
+        },
+        {
+            passive: true
+        }
+    );
 
-        };
 
-    window.auraLoadUserColor =
-        function() {
+    core.addEventListener(
+        "touchmove",
+        event => {
 
-            loadColor();
+            if (
+                event.touches.length !== 2 ||
+                pinchStart === null
+            ) {
+                return;
+            }
 
-        };
 
-    document.addEventListener(
-        "DOMContentLoaded",
+            event.preventDefault();
+
+
+            const dx =
+                event.touches[0].clientX -
+                event.touches[1].clientX;
+
+
+            const dy =
+                event.touches[0].clientY -
+                event.touches[1].clientY;
+
+
+            const currentDistance =
+                Math.hypot(dx, dy);
+
+
+            const difference =
+                currentDistance -
+                pinchStart;
+
+
+            targetZoom +=
+                difference * 0.0015;
+
+
+            targetZoom =
+                Math.max(
+                    MIN_ZOOM,
+                    Math.min(
+                        MAX_ZOOM,
+                        targetZoom
+                    )
+                );
+
+
+            pinchStart =
+                currentDistance;
+
+        },
+        {
+            passive: false
+        }
+    );
+
+
+    core.addEventListener(
+        "touchend",
         () => {
 
-            const panel =
-                document.createElement(
-                    "div"
-                );
+            pinchStart = null;
 
-            panel.id =
-                "auraColorPanel";
-
-            panel.innerHTML = `
-                <label
-                    for="auraColorPicker"
-                    title="Change AURA interface color"
-                >
-                    <span>AURA COLOR</span>
-                    <input
-                        id="auraColorPicker"
-                        type="color"
-                        value="${DEFAULT_COLOR}"
-                    >
-                </label>
-            `;
-
-            document.body.appendChild(panel);
-
-            const picker =
-                document.getElementById(
-                    "auraColorPicker"
-                );
-
-            loadColor();
-
-            picker.addEventListener(
-                "input",
-                event => {
-
-                    saveColor(
-                        event.target.value
-                    );
-
-                }
-            );
-
-            window.addEventListener(
-                "aura-user-changed",
-                loadColor
-            );
+        },
+        {
+            passive: true
         }
     );
 
