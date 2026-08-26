@@ -1117,7 +1117,7 @@ this.recognition.onerror = (event) => {
         "function"
     ) {
 
-        window.auraSetColor(color);
+        window.auraSetColor(requestedColor);
 
     }
 
